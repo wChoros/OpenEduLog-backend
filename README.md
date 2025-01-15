@@ -1,2 +1,1 @@
-# -OpenEduLog-backend
-backend
+Open source electronic gradebook backend
