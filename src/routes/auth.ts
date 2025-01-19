@@ -27,7 +27,6 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
          },
       })
 
-
       if (!user || !(await bcrypt.compare(password, user.password))) {
          res.status(401).json({ message: 'Invalid credentials' })
          return

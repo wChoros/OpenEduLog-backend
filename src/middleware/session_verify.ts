@@ -3,7 +3,11 @@ import { NextFunction, Request, Response } from 'express'
 
 const prisma = new PrismaClient()
 
-export const sessionVerify = async (req: Request, res: Response, next: NextFunction): Promise<void> =>  {
+export const sessionVerify = async (
+   req: Request,
+   res: Response,
+   next: NextFunction
+): Promise<void> => {
    if (!req.cookies) {
       res.status(401).json({ message: 'Unauthorized' })
       return
