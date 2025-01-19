@@ -1,3 +1,4 @@
+### Node template
 # Logs
 logs
 *.log
@@ -131,3 +132,5 @@ dist
 
 .idea
 .vscode
+.DS_Store
+node_modules
