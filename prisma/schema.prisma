@@ -7,27 +7,59 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Teacher {
-  id                 Int                  @id @default(autoincrement())
-  firstName          String
-  lastName           String
-  TeachersOnSubjects TeachersOnSubjects[]
+model User {
+  id               Int      @id @default(autoincrement())
+  firstName        String
+  lastName         String
+  email            String   @unique
+  login            String   @unique
+  password         String
+  isEmailConfirmed Boolean
+  phoneNumber      String
+  birthDate        DateTime
+
+  teacherId Int?
+  studentId Int?
+
+  TeacherInfo TeacherInfo? @relation(fields: [teacherId], references: [id])
+  Student     Student?     @relation(fields: [studentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Session Session[]
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  token     String
+  expiredAt DateTime
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Student {
-  id        Int     @id @default(autoincrement())
-  firstName String
-  lastName  String
-  groups    Group[]
-  auth      Auth    @relation(fields: [authId], references: [id])
-  authId    Int
-  Grade     Grade[]
+model TeacherInfo {
+  id                 Int                  @id @default(autoincrement())
+  TeachersOnSubjects TeachersOnSubjects[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  User User[]
+}
+
+model Student {
+  id     Int     @id @default(autoincrement())
+  groups Group[]
+  grade  Grade[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  User User[]
 }
 
 model Group {
@@ -38,21 +70,6 @@ model Group {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model Auth {
-  id               Int      @id @default(autoincrement())
-  email            String
-  login            String
-  password         String
-  isEmailConfirmed Boolean
-  phoneNumber      String
-  sessionID        String
-  sessionExpires   DateTime
-
-  Student   Student[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
 }
 
 model Subject {
@@ -66,10 +83,10 @@ model Subject {
 }
 
 model TeachersOnSubjects {
-  id        Int     @id @default(autoincrement())
-  teacher   Teacher @relation(fields: [teacherId], references: [id])
+  id        Int         @id @default(autoincrement())
+  teacher   TeacherInfo @relation(fields: [teacherId], references: [id])
   teacherId Int
-  subject   Subject @relation(fields: [subjectId], references: [id])
+  subject   Subject     @relation(fields: [subjectId], references: [id])
   subjectId Int
 
   Group Group[]
