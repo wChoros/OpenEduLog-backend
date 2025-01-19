@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
+import { SESSION_EXPIRY_TIME } from '../config/globals'
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 
@@ -42,7 +43,7 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
       await prisma.session.create({
          data: {
             token: sessionToken,
-            expiredAt: new Date(new Date().getTime() + 1000 * 60 * 60), // 1 hour
+            expiredAt: new Date(new Date().getTime() + SESSION_EXPIRY_TIME),
             userId: user.id,
          },
       })
@@ -51,7 +52,7 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
          .cookie('session_token', sessionToken, {
             httpOnly: true,
             secure: true,
-            expires: new Date(new Date().getTime() + 1000 * 60 * 60),
+            expires: new Date(new Date().getTime() + SESSION_EXPIRY_TIME),
          }) // 1 hour
          .json({ message: 'Logged In' })
    } catch (error) {

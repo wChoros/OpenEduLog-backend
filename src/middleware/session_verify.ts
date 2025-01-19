@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { NextFunction, Request, Response } from 'express'
+import { SESSION_EXPIRY_TIME } from '../config/globals'
 
 const prisma = new PrismaClient()
 
@@ -21,7 +22,7 @@ export const sessionVerify = async (
 
    const session = await prisma.session.findFirst({
       where: {
-         token: session_token as string,
+         token: session_token,
       },
    })
    console.log(session)
@@ -46,7 +47,7 @@ export const sessionVerify = async (
          id: session.id,
       },
       data: {
-         expiredAt: new Date(new Date().getTime() + 1000 * 60 * 60),
+         expiredAt: new Date(new Date().getTime() + SESSION_EXPIRY_TIME),
       },
    })
 
