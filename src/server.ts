@@ -21,7 +21,8 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 app.use('/auth', authRouter)
-app.use('/dashboard', sessionVerify, dashboardRouter)
+app.use('/dashboard/teacher', sessionVerify, teacherRouter)
+app.use('/dashboard/student', sessionVerify, studentRouter)
 
 app.listen(PORT, () => {
    console.log(`Server is running on http://localhost:${PORT}`)

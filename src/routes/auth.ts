@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
 import { SESSION_EXPIRY_TIME } from '../config/globals'
+import * as EmailValidator from 'email-validator'
+import passwordValidator from 'password-validator'
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 
@@ -10,9 +12,7 @@ const prisma = new PrismaClient()
 authRouter.post('/login', async (req: Request, res: Response): Promise<void> => {
    try {
       const { email, login, password } = req.body
-      console.log(req.body)
-      console.log(email)
-      console.log(login)
+
       if (!email && !login) {
          res.status(400).json({ message: 'Email or login is required' })
          return
@@ -54,6 +54,7 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
             secure: true,
             expires: new Date(new Date().getTime() + SESSION_EXPIRY_TIME),
          }) // 1 hour
+         .cookie('role', user.role)
          .json({ message: 'Logged In' })
    } catch (error) {
       res.status(500).json({ message: `Internal Server Error: ${error}` })
@@ -118,6 +119,12 @@ authRouter.post('/register', async (req: Request, res: Response): Promise<void> 
          return
       }
 
+      // check if email is valid
+      if (!EmailValidator.validate(email)) {
+         res.status(400).json({ message: 'Email is invalid' })
+         return
+      }
+
       // check if email already exists
       user = await prisma.user.findFirst({
          where: {
@@ -146,6 +153,17 @@ authRouter.post('/register', async (req: Request, res: Response): Promise<void> 
          return
       }
 
+      // check if password is strong
+      const schema = new passwordValidator()
+      schema.is().min(8).is().max(100).has().uppercase().has().lowercase().has().digits()
+      if (!schema.validate(password)) {
+         res.status(400).json({
+            message:
+               'Password must be at least 8 characters long, have at least 1 uppercase letter, 1 lowercase letter, and 1 digit',
+         })
+         return
+      }
+
       // hash password
 
       const hashedPassword = await bcrypt.hash(password, 10)
@@ -159,6 +177,8 @@ authRouter.post('/register', async (req: Request, res: Response): Promise<void> 
             isEmailConfirmed: false,
             phoneNumber: phone_number,
             birthDate: new Date(birth_date),
+            addressId: 1,
+            role: 'STUDENT',
          },
       })
       res.status(201).json({ message: 'User created' })
