@@ -7,76 +7,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Teacher {
-  id                 Int                  @id @default(autoincrement())
-  firstName          String
-  lastName           String
-  TeachersOnSubjects TeachersOnSubjects[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum Roles {
+  ADMIN
+  TEACHER
+  STUDENT
 }
 
-model Student {
-  id        Int     @id @default(autoincrement())
-  firstName String
-  lastName  String
-  groups    Group[]
-  auth      Auth    @relation(fields: [authId], references: [id])
-  authId    Int
-  Grade     Grade[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Group {
-  id                 Int                  @id @default(autoincrement())
-  name               String
-  students           Student[]
-  teachersOnSubjects TeachersOnSubjects[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Auth {
+model User {
   id               Int      @id @default(autoincrement())
-  email            String
-  login            String
+  firstName        String
+  lastName         String
+  email            String   @unique
+  login            String   @unique
   password         String
-  isEmailConfirmed Boolean
-  phoneNumber      String
-  sessionID        String
-  sessionExpires   DateTime
-
-  Student   Student[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model Subject {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  TeachersOnSubjects TeachersOnSubjects[]
+  isEmailConfirmed Boolean  @default(false)
+  phoneNumber      String?
+  birthDate        DateTime
+  addressId        Int
+  role             Roles
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
 
-model TeachersOnSubjects {
-  id        Int     @id @default(autoincrement())
-  teacher   Teacher @relation(fields: [teacherId], references: [id])
-  teacherId Int
-  subject   Subject @relation(fields: [subjectId], references: [id])
-  subjectId Int
+  Session Session[]
 
-  Group Group[]
+  StudentsOnGroups StudentsOnGroups[]
+
+  SubjectsOnTeachers SubjectsOnTeachers[]
+
+  GroupsOnTeachersOnSubjects GroupsOnSubjectsOnTeachers[]
+
   Grade Grade[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  Adress Adress @relation(fields: [addressId], references: [id])
 }
 
 model Adress {
@@ -89,16 +52,96 @@ model Adress {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  User User[]
 }
 
-model Grade {
-  id                   Int                @id @default(autoincrement())
-  value                Float
-  student              Student            @relation(fields: [studentId], references: [id])
-  studentId            Int
-  teachersOnSubjects   TeachersOnSubjects @relation(fields: [teachersOnSubjectsId], references: [id])
-  teachersOnSubjectsId Int
+model Session {
+  id        Int      @id @default(autoincrement())
+  token     String
+  expiredAt DateTime
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Subjects {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  SubjectsOnTeachers SubjectsOnTeachers[]
+
+  GroupsOnTeachersOnSubjects GroupsOnSubjectsOnTeachers[]
+}
+
+model Group {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  StudentsOnGroups StudentsOnGroups[]
+
+  GroupsOnTeachersOnSubjects GroupsOnSubjectsOnTeachers[]
+}
+
+model Grade {
+  id                 Int   @id @default(autoincrement())
+  value              Float
+  studentId          Int
+  subjectOnTeacherId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student          User               @relation(fields: [studentId], references: [id])
+  subjectOnTeacher SubjectsOnTeachers @relation(fields: [subjectOnTeacherId], references: [id])
+}
+
+model SubjectsOnTeachers {
+  id        Int @id @default(autoincrement())
+  subjectId Int
+  teacherId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subject Subjects @relation(fields: [subjectId], references: [id])
+  teacher User     @relation(fields: [teacherId], references: [id])
+
+  Grade Grade[]
+}
+
+model StudentsOnGroups {
+  groupId   Int
+  studentId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group   Group @relation(fields: [groupId], references: [id])
+  student User  @relation(fields: [studentId], references: [id])
+
+  @@id([groupId, studentId])
+}
+
+model GroupsOnSubjectsOnTeachers {
+  groupId   Int
+  teacherId Int
+  subjectId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group   Group    @relation(fields: [groupId], references: [id])
+  teacher User     @relation(fields: [teacherId], references: [id])
+  subject Subjects @relation(fields: [subjectId], references: [id])
+
+  @@id([groupId, teacherId, subjectId])
 }

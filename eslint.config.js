@@ -1,5 +1,3 @@
-const prettierConfig = require('eslint-config-prettier');
-
 module.exports = [
   {
     ignores: ['node_modules', 'dist'],
@@ -15,12 +13,9 @@ module.exports = [
     },
     plugins: {
       '@typescript-eslint': require('@typescript-eslint/eslint-plugin'),
-      prettier: require('eslint-plugin-prettier'),
     },
     rules: {
       ...require('@typescript-eslint/eslint-plugin').configs.recommended.rules,
-      ...prettierConfig.rules,
-      'prettier/prettier': 'error',
     },
   },
 ];
