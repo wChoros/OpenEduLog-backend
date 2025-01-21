@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express'
 import authRouter from './routes/auth'
-import dashboardRouter from './routes/dashboard'
-import { sessionVerify } from './middleware/session_verify'
+// import { sessionVerify } from './middleware/session_verify'
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 
@@ -21,8 +20,9 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 app.use('/auth', authRouter)
-app.use('/dashboard/teacher', sessionVerify, teacherRouter)
-app.use('/dashboard/student', sessionVerify, studentRouter)
+// TODO: Uncomment the following lines after creating the teacherRouter and studentRouter
+// app.use('/dashboard/teacher', sessionVerify, teacherRouter)
+// app.use('/dashboard/student', sessionVerify, studentRouter)
 
 app.listen(PORT, () => {
    console.log(`Server is running on http://localhost:${PORT}`)
