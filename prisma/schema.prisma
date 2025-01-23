@@ -39,10 +39,10 @@ model User {
 
   Grade Grade[]
 
-  Adress Adress @relation(fields: [addressId], references: [id])
+  Adress Address @relation(fields: [addressId], references: [id])
 }
 
-model Adress {
+model Address {
   id      Int    @id @default(autoincrement())
   street  String
   house   String
@@ -67,7 +67,7 @@ model Session {
   updatedAt DateTime @updatedAt
 }
 
-model Subjects {
+model Subject {
   id   Int    @id @default(autoincrement())
   name String
 
@@ -112,8 +112,8 @@ model SubjectsOnTeachers {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  subject Subjects @relation(fields: [subjectId], references: [id])
-  teacher User     @relation(fields: [teacherId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher User    @relation(fields: [teacherId], references: [id])
 
   Grade Grade[]
 }
@@ -139,9 +139,9 @@ model GroupsOnSubjectsOnTeachers {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  group   Group    @relation(fields: [groupId], references: [id])
-  teacher User     @relation(fields: [teacherId], references: [id])
-  subject Subjects @relation(fields: [subjectId], references: [id])
+  group   Group   @relation(fields: [groupId], references: [id])
+  teacher User    @relation(fields: [teacherId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
 
   @@id([groupId, teacherId, subjectId])
 }
