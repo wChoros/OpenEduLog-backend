@@ -1,16 +1,26 @@
 import express, { Request, Response } from 'express'
 import authRouter from './routes/auth'
-// import { sessionVerify } from './middleware/session_verify'
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
+
+import { sessionVerify } from './middleware/session_verify'
+import gradesRouter from './routes/grades'
+import groupsRouter from './routes/groups'
+import subjectsRouter from './routes/subjects'
 
 dotenv.config()
 
 const app = express()
 app.disable('x-powered-by')
 const PORT = process.env.PORT
+const corsOptions = {
+   origin: 'http://localhost:5173',
+   credentials: true,
+}
 
 // Middleware to parse JSON
+app.use(cors(corsOptions))
 app.use(express.json())
 app.use(cookieParser())
 
@@ -20,9 +30,9 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 app.use('/auth', authRouter)
-// TODO: Uncomment the following lines after creating the teacherRouter and studentRouter
-// app.use('/dashboard/teacher', sessionVerify, teacherRouter)
-// app.use('/dashboard/student', sessionVerify, studentRouter)
+app.use('/grades', sessionVerify, gradesRouter)
+app.use('/groups', sessionVerify, groupsRouter)
+app.use('/subjects', sessionVerify, subjectsRouter)
 
 app.listen(PORT, () => {
    console.log(`Server is running on http://localhost:${PORT}`)

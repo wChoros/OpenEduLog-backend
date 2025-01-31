@@ -53,8 +53,9 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
             httpOnly: true,
             secure: true,
             expires: new Date(new Date().getTime() + SESSION_EXPIRY_TIME),
+            sameSite: 'none',
          }) // 1 hour
-         .cookie('role', user.role)
+         .cookie('role', user.role, { sameSite: 'none', secure: true })
          .json({ message: 'Logged In' })
    } catch (error) {
       res.status(500).json({ message: `Internal Server Error: ${error}` })
@@ -101,9 +102,24 @@ authRouter.post('/logout', async (req: Request, res: Response): Promise<void> =>
 authRouter.post('/register', async (req: Request, res: Response): Promise<void> => {
    try {
       const { first_name, last_name, email, login, password, phone_number, birth_date } = req.body
+      // adress
+      const { street, house, city, zip, country } = req.body
 
       if (
-         ![first_name, last_name, email, login, password, phone_number, birth_date].every(Boolean)
+         ![
+            first_name,
+            last_name,
+            email,
+            login,
+            password,
+            phone_number,
+            birth_date,
+            street,
+            house,
+            city,
+            zip,
+            country,
+         ].every(Boolean)
       ) {
          res.status(400).json({ message: 'Provide all required data' })
          return
@@ -167,6 +183,19 @@ authRouter.post('/register', async (req: Request, res: Response): Promise<void> 
       // hash password
 
       const hashedPassword = await bcrypt.hash(password, 10)
+
+      // create address
+      const address = await prisma.address.create({
+         data: {
+            street: street,
+            house: house,
+            city: city,
+            zip: zip,
+            country: country,
+         },
+      })
+
+      // create user
       await prisma.user.create({
          data: {
             firstName: first_name,
@@ -177,7 +206,7 @@ authRouter.post('/register', async (req: Request, res: Response): Promise<void> 
             isEmailConfirmed: false,
             phoneNumber: phone_number,
             birthDate: new Date(birth_date),
-            addressId: 1,
+            addressId: address.id,
             role: 'STUDENT',
          },
       })
