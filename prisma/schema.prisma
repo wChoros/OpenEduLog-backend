@@ -35,11 +35,11 @@ model User {
 
   SubjectsOnTeachers SubjectsOnTeachers[]
 
-  GroupsOnTeachersOnSubjects GroupsOnSubjectsOnTeachers[]
+  GroupsOnSubjectsOnTeachers GroupsOnSubjectsOnTeachers[]
 
   Grade Grade[]
 
-  Adress Address @relation(fields: [addressId], references: [id])
+  Address Address @relation(fields: [addressId], references: [id])
 }
 
 model Address {
