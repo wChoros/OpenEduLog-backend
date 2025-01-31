@@ -53,8 +53,9 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
             httpOnly: true,
             secure: true,
             expires: new Date(new Date().getTime() + SESSION_EXPIRY_TIME),
+            sameSite: 'none',
          }) // 1 hour
-         .cookie('role', user.role)
+         .cookie('role', user.role, { sameSite: 'none', secure: true })
          .json({ message: 'Logged In' })
    } catch (error) {
       res.status(500).json({ message: `Internal Server Error: ${error}` })

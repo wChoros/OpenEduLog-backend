@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express'
 import authRouter from './routes/auth'
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 
 import { sessionVerify } from './middleware/session_verify'
 import gradesRouter from './routes/grades'
@@ -13,8 +14,13 @@ dotenv.config()
 const app = express()
 app.disable('x-powered-by')
 const PORT = process.env.PORT
+const corsOptions = {
+   origin: 'http://localhost:5173',
+   credentials: true,
+}
 
 // Middleware to parse JSON
+app.use(cors(corsOptions))
 app.use(express.json())
 app.use(cookieParser())
 

@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express'
-import { PrismaClient, User, Roles } from '@prisma/client'
+import { PrismaClient, Roles, User } from '@prisma/client'
 
 const subjectsRouter = express.Router()
 const prisma = new PrismaClient()
@@ -97,7 +97,6 @@ subjectsRouter.get('/group/:groupId', async (req: Request, res: Response) => {
 
    // student can only see subjects for their group
    if (user.role == Roles.STUDENT) {
-
       const group = await prisma.group.findFirst({
          where: {
             StudentsOnGroups: {
