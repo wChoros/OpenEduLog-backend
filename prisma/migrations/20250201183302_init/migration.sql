@@ -70,6 +70,8 @@ CREATE TABLE "Group" (
 CREATE TABLE "Grade" (
     "id" SERIAL NOT NULL,
     "value" DOUBLE PRECISION NOT NULL,
+    "description" TEXT,
+    "weight" INTEGER NOT NULL DEFAULT 1,
     "studentId" INTEGER NOT NULL,
     "subjectOnTeacherId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

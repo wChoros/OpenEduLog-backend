@@ -56,6 +56,7 @@ export const sessionVerify = async (
          id: session.userId,
       },
    })
+   console.log(req.body)
 
    next()
 }

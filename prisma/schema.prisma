@@ -92,8 +92,10 @@ model Group {
 }
 
 model Grade {
-  id                 Int   @id @default(autoincrement())
+  id                 Int     @id @default(autoincrement())
   value              Float
+  description        String?
+  weight             Int     @default(1)
   studentId          Int
   subjectOnTeacherId Int
 
