@@ -13,6 +13,16 @@ enum Roles {
   STUDENT
 }
 
+enum WeekDays {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
 model User {
   id               Int      @id @default(autoincrement())
   firstName        String
@@ -40,6 +50,8 @@ model User {
   Grade Grade[]
 
   Address Address @relation(fields: [addressId], references: [id])
+
+  Timetable Timetable[]
 }
 
 model Address {
@@ -89,6 +101,7 @@ model Group {
   StudentsOnGroups StudentsOnGroups[]
 
   GroupsOnTeachersOnSubjects GroupsOnSubjectsOnTeachers[]
+  Timetable                  Timetable[]
 }
 
 model Grade {
@@ -106,6 +119,24 @@ model Grade {
   subjectOnTeacher SubjectsOnTeachers @relation(fields: [subjectOnTeacherId], references: [id])
 }
 
+model Timetable {
+  id                    Int      @id @default(autoincrement())
+  weekNumber            Int
+  weekDay               WeekDays
+  lessonNumber          Int
+  subjectOnTeacherId    Int
+  groupId               Int
+  substitutionTeacherId Int?
+  isCanceled            Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subjectOnTeacher    SubjectsOnTeachers @relation(fields: [subjectOnTeacherId], references: [id])
+  group               Group              @relation(fields: [groupId], references: [id])
+  substitutionTeacher User?              @relation(fields: [substitutionTeacherId], references: [id])
+}
+
 model SubjectsOnTeachers {
   id        Int @id @default(autoincrement())
   subjectId Int
@@ -118,6 +149,8 @@ model SubjectsOnTeachers {
   teacher User    @relation(fields: [teacherId], references: [id])
 
   Grade Grade[]
+
+  Timetable Timetable[]
 }
 
 model StudentsOnGroups {
