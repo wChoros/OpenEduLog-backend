@@ -3,6 +3,7 @@ import authRouter from './routes/auth'
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+import {authorize} from './middleware/authorize'
 
 import { sessionVerify } from './middleware/session_verify'
 import gradesRouter from './routes/grades'
@@ -27,8 +28,14 @@ app.use(cookieParser())
 
 // Simple route
 app.get('/', (req: Request, res: Response) => {
-   res.send('Hello, World!')
+   res.send('Hello, OpenEduLog!')
 })
+
+
+
+// app.get('/grades/:id', sessionVerify, authorize('readGrades', 'student'), (req, res) => {
+//    res.json({ message: 'You can view this users grades.' });
+// });
 
 app.use('/auth', authRouter)
 app.use('/grades', sessionVerify, gradesRouter)

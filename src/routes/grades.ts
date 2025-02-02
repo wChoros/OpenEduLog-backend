@@ -1,10 +1,11 @@
 import express, { Request, Response } from 'express'
 import { PrismaClient, Roles, User } from '@prisma/client'
+import { authorize } from '../middleware/authorize'
 
 const gradesRouter = express.Router()
 const prisma = new PrismaClient()
 
-gradesRouter.get('/:studentId', async (req: Request, res: Response) => {
+gradesRouter.get('/:studentId', authorize('read', 'Grade'), async (req: Request, res: Response) => {
    const { studentId } = req.params
    const user: User = req.body.user
 
@@ -42,6 +43,7 @@ gradesRouter.get('/:studentId', async (req: Request, res: Response) => {
       subjectName: grade.subjectOnTeacher.subject.name,
    }))
 
+   console.log(response)
    res.json(response)
    return
 })
