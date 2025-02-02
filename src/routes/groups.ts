@@ -61,13 +61,13 @@ groupsRouter.get('/teacher/:teacherId', async (req: Request, res: Response) => {
 
    // admin can see all groups
 
-   // get groups for teacher
-
    const groups = await prisma.group.findMany({
       where: {
-         GroupsOnTeachersOnSubjects: {
+         GroupsOnSubjectsOnTeachers: {
             some: {
-               teacherId: parseInt(teacherId),
+               subjectOnTeacher: {
+                  teacherId: parseInt(teacherId),
+               },
             },
          },
       },
@@ -151,23 +151,21 @@ groupsRouter.post('/add-teacher', async (req: Request, res: Response) => {
    }
 
    // check if teacher is teaching the subject
-   const teacherOnSubject = await prisma.groupsOnSubjectsOnTeachers.findFirst({
+   const SubjectOnTeacher = await prisma.subjectsOnTeachers.findFirst({
       where: {
-         teacherId,
-         groupId,
-         subjectId,
+         teacherId: parseInt(teacherId),
+         subjectId: parseInt(subjectId),
       },
    })
-   if (!teacherOnSubject) {
+   if (!SubjectOnTeacher) {
       res.status(403).json({ message: 'Teacher is not teaching this subject' })
       return
    }
 
    const teacherOnGroup = await prisma.groupsOnSubjectsOnTeachers.create({
       data: {
-         teacherId,
-         groupId,
-         subjectId,
+         subjectOnTeacherId: SubjectOnTeacher.id,
+         groupId: parseInt(groupId),
       },
    })
 
@@ -204,11 +202,22 @@ groupsRouter.delete('/remove-teacher', async (req: Request, res: Response) => {
       return
    }
 
+   const subjectOnTeacher = await prisma.subjectsOnTeachers.findFirst({
+      where: {
+         teacherId: teacherId,
+         subjectId: subjectId,
+      },
+   })
+
+   if (!subjectOnTeacher) {
+      res.status(404).json({ message: 'Teacher is not teaching this subject' })
+      return
+   }
+
    await prisma.groupsOnSubjectsOnTeachers.deleteMany({
       where: {
-         teacherId,
-         groupId,
-         subjectId,
+         subjectOnTeacherId: subjectOnTeacher.id,
+         groupId: groupId,
       },
    })
 
