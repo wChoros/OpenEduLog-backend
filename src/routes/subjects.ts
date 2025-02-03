@@ -1,11 +1,12 @@
 import express, { Request, Response } from 'express'
 import { PrismaClient, Roles, User } from '@prisma/client'
+import { authorize } from '../middleware/authorize'
 
 const subjectsRouter = express.Router()
 const prisma = new PrismaClient()
 
 // get subjects for student
-subjectsRouter.get('/student/:studentId', async (req: Request, res: Response) => {
+subjectsRouter.get('/student/:studentId',authorize('read', 'Subject') , async (req: Request, res: Response) => {
    const user: User = req.body.user
    const { studentId } = req.params
 
@@ -51,7 +52,7 @@ subjectsRouter.get('/student/:studentId', async (req: Request, res: Response) =>
 })
 
 // get subjects for teacher
-subjectsRouter.get('teacher/:teacherId', async (req: Request, res: Response) => {
+subjectsRouter.get('teacher/:teacherId', authorize('read', 'Subject'),  async (req: Request, res: Response) => {
    const user: User = req.body.user
    const { teacherId } = req.params
 
@@ -91,7 +92,7 @@ subjectsRouter.get('teacher/:teacherId', async (req: Request, res: Response) => 
 })
 
 // get subjects for a group
-subjectsRouter.get('/group/:groupId', async (req: Request, res: Response) => {
+subjectsRouter.get('/group/:groupId', authorize('read', 'Subject'), async (req: Request, res: Response) => {
    const user: User = req.body.user
    const { groupId } = req.params
 
@@ -161,7 +162,7 @@ subjectsRouter.post('/', async (req: Request, res: Response) => {
    return
 })
 
-subjectsRouter.delete('/:subjectId', async (req: Request, res: Response) => {
+subjectsRouter.delete('/:subjectId', authorize('delete', 'Subject'), async (req: Request, res: Response) => {
    const user: User = req.body.user
    const { subjectId } = req.params
 
@@ -208,7 +209,7 @@ subjectsRouter.put('/:subjectId', async (req: Request, res: Response) => {
 })
 
 // add a teacher to a subject
-subjectsRouter.post('/teacher', async (req: Request, res: Response) => {
+subjectsRouter.post('/teacher', authorize('addTo', 'Subject'), async (req: Request, res: Response) => {
    const user: User = req.body.user
    const { teacherId, subjectId } = req.body
 
@@ -243,7 +244,7 @@ subjectsRouter.post('/teacher', async (req: Request, res: Response) => {
 })
 
 // remove a teacher from a subject
-subjectsRouter.delete('/teacher', async (req: Request, res: Response) => {
+subjectsRouter.delete('/teacher', authorize('removeFrom', 'Subject'), async (req: Request, res: Response) => {
    const user: User = req.body.user
    const { teacherId, subjectId } = req.body
 

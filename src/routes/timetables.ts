@@ -1,10 +1,11 @@
 import express from 'express'
 import { PrismaClient, User } from '@prisma/client'
+import { authorize } from '../middleware/authorize'
 
 const timetableRouter = express.Router()
 const prisma = new PrismaClient()
 
-timetableRouter.get('/user/:userId/:weekNumber', async (req, res) => {
+timetableRouter.get('/user/:userId/:weekNumber', authorize('read', 'Timetable'),  async (req, res) => {
    const { userId, weekNumber } = req.params
    const user: User = req.body.user
 
@@ -65,7 +66,7 @@ timetableRouter.get('/user/:userId/:weekNumber', async (req, res) => {
    }
 })
 
-timetableRouter.get('/group/:groupId', async (req, res) => {
+timetableRouter.get('/group/:groupId',authorize('read', 'Timetable'), async (req, res) => {
    const { groupId } = req.params
    const user: User = req.body.user
 
@@ -124,7 +125,7 @@ timetableRouter.get('/group/:groupId', async (req, res) => {
    }
 })
 
-timetableRouter.post('/', async (req, res) => {
+timetableRouter.post('/', authorize('create', 'Timetable'),async (req, res) => {
    const user: User = req.body.user
    const { groupId, subjectOnTeacherId, weekNumber, weekDay, lessonNumber } = req.body
 
@@ -158,7 +159,7 @@ timetableRouter.post('/', async (req, res) => {
    }
 })
 
-timetableRouter.put('/substitute/:recordId/:substitutionTeacherId', async (req, res) => {
+timetableRouter.put('/substitute/:recordId/:substitutionTeacherId', authorize('update', 'Timetable'), async (req, res) => {
    const user: User = req.body.user
    const { recordId, substitutionTeacherId } = req.params
 
@@ -225,7 +226,7 @@ timetableRouter.put('/cancel/:recordId', async (req, res) => {
    }
 })
 
-timetableRouter.put('/restore/:recordId', async (req, res) => {
+timetableRouter.put('/restore/:recordId',authorize('update', 'Timetable'),  async (req, res) => {
    const user: User = req.body.user
    const { recordId } = req.params
 
@@ -259,7 +260,7 @@ timetableRouter.put('/restore/:recordId', async (req, res) => {
    }
 })
 
-timetableRouter.put('/:recordId', async (req, res) => {
+timetableRouter.put('/:recordId', authorize('update', 'Timetable'), async (req, res) => {
    const user: User = req.body.user
    const { recordId } = req.params
    const { groupId, subjectOnTeacherId, weekNumber, weekDay, lessonNumber } = req.body
@@ -297,7 +298,7 @@ timetableRouter.put('/:recordId', async (req, res) => {
    }
 })
 
-timetableRouter.delete('/:recordId', async (req, res) => {
+timetableRouter.delete('/:recordId', authorize('delete', 'Timetable') ,async (req, res) => {
    const user: User = req.body.user
    const { recordId } = req.params
 

@@ -48,7 +48,7 @@ gradesRouter.get('/:studentId', authorize('read', 'Grade'), async (req: Request,
    return
 })
 
-gradesRouter.get('/details/:gradeId', async (req: Request, res: Response) => {
+gradesRouter.get('/details/:gradeId', authorize('read', 'Grade'), async (req: Request, res: Response) => {
    const gradeId = req.params.gradeId
    const user: User = req.body.user
 
@@ -150,7 +150,7 @@ gradesRouter.post('/:studentId/:teacherOnSubjectId/:value', async (req: Request,
    return
 })
 
-gradesRouter.delete('/:gradeId', async (req: Request, res: Response) => {
+gradesRouter.delete('/:gradeId', authorize('delete', 'Grade'), async (req: Request, res: Response) => {
    const gradeId = req.params.gradeId
    const user: User = req.body.user
 
@@ -193,7 +193,7 @@ gradesRouter.delete('/:gradeId', async (req: Request, res: Response) => {
    })
 })
 
-gradesRouter.put('/:gradeId/:newValue', async (req: Request, res: Response) => {
+gradesRouter.put('/:gradeId/:newValue', authorize('update', 'Grade'), async (req: Request, res: Response) => {
    const { gradeId, newValue } = req.params
    const user: User = req.body.user
 

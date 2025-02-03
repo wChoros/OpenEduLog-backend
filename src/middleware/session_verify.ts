@@ -53,7 +53,7 @@ export const sessionVerify = async (
 
    req.body.user = await prisma.user.findFirst({
       where: {
-         id: 1,
+         id: 2,
       },
    })
    console.log(req.body)

@@ -1,11 +1,12 @@
 import express, { Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
+import { authorize } from '../middleware/authorize'
 
 const groupsRouter = express.Router()
 const prisma = new PrismaClient()
 
 // get groups for student
-groupsRouter.get('/student/:studentId', async (req: Request, res: Response) => {
+groupsRouter.get('/student/:studentId',authorize('read', 'Group'), async (req: Request, res: Response) => {
    const { studentId } = req.params
    const user = req.body.user
 
@@ -41,7 +42,7 @@ groupsRouter.get('/student/:studentId', async (req: Request, res: Response) => {
 })
 
 // get groups for teacher
-groupsRouter.get('/teacher/:teacherId', async (req: Request, res: Response) => {
+groupsRouter.get('/teacher/:teacherId',authorize('read', 'Group'), async (req: Request, res: Response) => {
    const { teacherId } = req.params
    const user = req.body.user
 
@@ -76,7 +77,7 @@ groupsRouter.get('/teacher/:teacherId', async (req: Request, res: Response) => {
    res.status(200).json(groups)
 })
 
-groupsRouter.post('/create', async (req: Request, res: Response) => {
+groupsRouter.post('/create', authorize('create', 'Group'), async (req: Request, res: Response) => {
    const user = req.body.user
    const { name } = req.body
 
@@ -95,7 +96,7 @@ groupsRouter.post('/create', async (req: Request, res: Response) => {
    res.status(201).json(group)
 })
 
-groupsRouter.delete('/delete', async (req: Request, res: Response) => {
+groupsRouter.delete('/delete', authorize('delete', 'Group'), async (req: Request, res: Response) => {
    const user = req.body.user
    const { groupId } = req.body
 
@@ -120,7 +121,7 @@ groupsRouter.delete('/delete', async (req: Request, res: Response) => {
    res.status(204).json({ message: 'Group deleted' })
 })
 
-groupsRouter.post('/add-student', async (req: Request, res: Response) => {
+groupsRouter.post('/add-student', authorize('addTo', 'Group'), async (req: Request, res: Response) => {
    const user = req.body.user
    const { studentId, groupId } = req.body
 
@@ -140,7 +141,7 @@ groupsRouter.post('/add-student', async (req: Request, res: Response) => {
    res.status(201).json(studentOnGroup)
 })
 
-groupsRouter.post('/add-teacher', async (req: Request, res: Response) => {
+groupsRouter.post('/add-teacher', authorize('addTo', 'Group'), async (req: Request, res: Response) => {
    const user = req.body.user
    const { teacherId, groupId, subjectId } = req.body
 
@@ -174,7 +175,7 @@ groupsRouter.post('/add-teacher', async (req: Request, res: Response) => {
    res.status(201).json(teacherOnGroup)
 })
 
-groupsRouter.delete('/remove-student', async (req: Request, res: Response) => {
+groupsRouter.delete('/remove-student', authorize('removeFrom', 'Group'), async (req: Request, res: Response) => {
    const user = req.body.user
    const { studentId, groupId } = req.body
 
@@ -194,7 +195,7 @@ groupsRouter.delete('/remove-student', async (req: Request, res: Response) => {
    res.status(204).json({ message: 'Student removed from group' })
 })
 
-groupsRouter.delete('/remove-teacher', async (req: Request, res: Response) => {
+groupsRouter.delete('/remove-teacher', authorize('removeFrom', 'Group'), async (req: Request, res: Response) => {
    const user = req.body.user
    const { teacherId, groupId, subjectId } = req.body
 

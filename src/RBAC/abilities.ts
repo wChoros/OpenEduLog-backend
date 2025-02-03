@@ -3,18 +3,21 @@ import {
    AbilityClass,
    PureAbility,
    InferSubjects,
+   ConditionsMatcher,
 } from '@casl/ability';
 import { User} from '@prisma/client';
 
+
 export type Actions =
-   | 'manage' | 'read' | 'create' | 'update' | 'delete'
-   | 'readGrades' | 'addGrades' | 'deleteGrades' | 'updateGrades'
-   | 'readGroups' | 'createGroups' | 'deleteGroups' | 'addStudentToGroups'
-   | 'addTeacherToGroups' | 'deleteStudentsFromGroups' | 'deleteTeacherFromGroups'
-   | 'readSubjects' | 'createSubject' | 'deleteSubject' | 'updateSubject'
-   | 'readTimetable' | 'createTimetable' | 'substituteTimetable'
-   | 'cancelTimetable' | 'restoreTimetable' | 'updateTimetable' | 'deleteTimetable'
-   | 'all';
+   | 'manage' | 'read' | 'create' | 'update' | 'delete' | 'add' | 'addTo' | 'removeFrom' | 'restore' | 'all';
+   //over-engineered code
+   // | 'readGrades' | 'addGrades' | 'deleteGrades' | 'updateGrades'
+   // | 'readGroups' | 'createGroups' | 'deleteGroups' | 'addStudentToGroups'
+   // | 'addTeacherToGroups' | 'deleteStudentsFromGroups' | 'deleteTeacherFromGroups'
+   // | 'readSubjects' | 'createSubject' | 'deleteSubject' | 'updateSubject'
+   // | 'readTimetable' | 'createTimetable' | 'substituteTimetable'
+   // | 'cancelTimetable' | 'restoreTimetable' | 'updateTimetable' | 'deleteTimetable'
+
 
 export type Subjects = InferSubjects<'User' | 'Session' | 'Subject' | 'Group' | 'Grade' | 'Timetable'> | 'all';
 
@@ -27,25 +30,36 @@ export function defineAbilitiesFor(user: User) {
       can('manage', 'all'); // Full access
    }
    else if (user.role === 'STUDENT') {
-      can(['readGrades', 'readGroups', 'readSubjects', 'readTimetable'], 'User', { id: user.id });
       can('read', 'Grade', { studentId: user.id });
       can('read', 'Group', { studentId: user.id });
+      can('read', 'Subject');
+      can('read', 'Timetable', { groupId: user.id });
    }
    else if (user.role === 'TEACHER') {
-      can(['readGroups', 'readSubjects', 'readTimetable'], 'User', { id: user.id });
-      can(['addGrades', 'updateGrades', 'deleteGrades'], 'Grade', { teacherId: user.id });
+      can('read', 'Group', { teacherId: user.id });
+      can('read', 'Subject', { teacherId: user.id });
+      can('read', 'Timetable', { teacherId: user.id });
+      can(['add', 'update', 'delete'], 'Grade', { teacherId: user.id });
    }
    else {
       cannot('manage', 'all'); // No access
    }
 
+   const conditionsMatcher: ConditionsMatcher<any> = (conditions: Record<string, any>) => (subject) => {
+      return Object.keys(conditions).every((key) => {
+         return subject[key] === conditions[key];
+      });
+   };
+
    return build({
       detectSubjectType: (item) => {
-         if ('email' in item) return 'User';
-         if ('gradeValue' in item) return 'Grade';
-         if ('groupName' in item) return 'Group';
+         if ('email' in item && 'role' in item) return 'User';
+         if ('gradeValue' in item && 'studentId' in item) return 'Grade';
+         if ('groupName' in item && 'studentId' in item) return 'Group';
          if ('schedule' in item) return 'Timetable';
+         if ('subjectName' in item) return 'Subject';
          return 'all';
       },
+      conditionsMatcher,
    });
 }
