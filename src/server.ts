@@ -3,10 +3,6 @@ import authRouter from './routes/auth'
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-<<<<<<< Updated upstream
-=======
-//import {authorize} from './middleware/authorize'
->>>>>>> Stashed changes
 
 import { sessionVerify } from './middleware/session_verify'
 import gradesRouter from './routes/grades'
