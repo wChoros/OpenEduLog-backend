@@ -48,68 +48,72 @@ gradesRouter.get('/:studentId', authorize('read', 'Grade'), async (req: Request,
    return
 })
 
-gradesRouter.get('/details/:gradeId', authorize('read', 'Grade'), async (req: Request, res: Response) => {
-   const gradeId = req.params.gradeId
-   const user: User = req.body.user
+gradesRouter.get(
+   '/details/:gradeId',
+   authorize('read', 'Grade'),
+   async (req: Request, res: Response) => {
+      const gradeId = req.params.gradeId
+      const user: User = req.body.user
 
-   // check if grade exists
-   const grade = await prisma.grade.findFirst({
-      where: {
-         id: parseInt(gradeId),
-      },
-      include: {
-         subjectOnTeacher: {
-            include: {
-               teacher: true,
-               subject: true,
+      // check if grade exists
+      const grade = await prisma.grade.findFirst({
+         where: {
+            id: parseInt(gradeId),
+         },
+         include: {
+            subjectOnTeacher: {
+               include: {
+                  teacher: true,
+                  subject: true,
+               },
             },
          },
-      },
-   })
-   if (!grade) {
-      res.status(404).json({ message: 'Grade not found' })
-      return
-   }
-
-   // student can only see their own grades
-   if (user.role == Roles.STUDENT && user.id !== grade.studentId) {
-      res.status(403).json({ message: 'Forbidden' })
-      return
-   }
-
-   // teacher can only see grades of their students on their subjects
-   if (user.role == Roles.TEACHER) {
-      const teacherOnSubject = await prisma.subjectsOnTeachers.findFirst({
-         where: {
-            id: grade.subjectOnTeacherId,
-            teacherId: user.id,
-         },
       })
-      if (!teacherOnSubject) {
+      if (!grade) {
+         res.status(404).json({ message: 'Grade not found' })
+         return
+      }
+
+      // student can only see their own grades
+      if (user.role == Roles.STUDENT && user.id !== grade.studentId) {
          res.status(403).json({ message: 'Forbidden' })
          return
       }
+
+      // teacher can only see grades of their students on their subjects
+      if (user.role == Roles.TEACHER) {
+         const teacherOnSubject = await prisma.subjectsOnTeachers.findFirst({
+            where: {
+               id: grade.subjectOnTeacherId,
+               teacherId: user.id,
+            },
+         })
+         if (!teacherOnSubject) {
+            res.status(403).json({ message: 'Forbidden' })
+            return
+         }
+      }
+
+      // admin can see all grades
+
+      const gradeDetails = {
+         id: grade.id,
+         value: grade.value,
+         description: grade.description,
+         weight: grade.weight,
+         subjectName: grade.subjectOnTeacher.subject.name,
+         subjectId: grade.subjectOnTeacher.subjectId,
+         teacherFirstName: grade.subjectOnTeacher.teacher.firstName,
+         teacherLastName: grade.subjectOnTeacher.teacher.lastName,
+         teacherId: grade.subjectOnTeacher.teacherId,
+         addedAt: grade.createdAt,
+         updatedAt: grade.updatedAt,
+      }
+
+      res.json(gradeDetails)
+      return
    }
-
-   // admin can see all grades
-
-   const gradeDetails = {
-      id: grade.id,
-      value: grade.value,
-      description: grade.description,
-      weight: grade.weight,
-      subjectName: grade.subjectOnTeacher.subject.name,
-      subjectId: grade.subjectOnTeacher.subjectId,
-      teacherFirstName: grade.subjectOnTeacher.teacher.firstName,
-      teacherLastName: grade.subjectOnTeacher.teacher.lastName,
-      teacherId: grade.subjectOnTeacher.teacherId,
-      addedAt: grade.createdAt,
-      updatedAt: grade.updatedAt,
-   }
-
-   res.json(gradeDetails)
-   return
-})
+)
 
 gradesRouter.post('/:studentId/:teacherOnSubjectId/:value', async (req: Request, res: Response) => {
    const { studentId, teacherOnSubjectId, value, description, weight } = req.params
@@ -150,96 +154,104 @@ gradesRouter.post('/:studentId/:teacherOnSubjectId/:value', async (req: Request,
    return
 })
 
-gradesRouter.delete('/:gradeId', authorize('delete', 'Grade'), async (req: Request, res: Response) => {
-   const gradeId = req.params.gradeId
-   const user: User = req.body.user
+gradesRouter.delete(
+   '/:gradeId',
+   authorize('delete', 'Grade'),
+   async (req: Request, res: Response) => {
+      const gradeId = req.params.gradeId
+      const user: User = req.body.user
 
-   // check if grade exists
-   const grade = await prisma.grade.findFirst({
-      where: {
-         id: parseInt(gradeId),
-      },
-   })
-   if (!grade) {
-      res.status(404).json({ message: 'Grade not found' })
-      return
-   }
-
-   // student cannot delete grades
-   if (user.role == Roles.STUDENT) {
-      res.status(403).json({ message: 'Forbidden' })
-      return
-   }
-
-   // teacher can only delete grades of their students on their subjects
-   if (user.role == Roles.TEACHER) {
-      const teacherOnSubject = await prisma.subjectsOnTeachers.findFirst({
+      // check if grade exists
+      const grade = await prisma.grade.findFirst({
          where: {
-            id: grade.subjectOnTeacherId,
-            teacherId: user.id,
+            id: parseInt(gradeId),
          },
       })
-      if (!teacherOnSubject) {
+      if (!grade) {
+         res.status(404).json({ message: 'Grade not found' })
+         return
+      }
+
+      // student cannot delete grades
+      if (user.role == Roles.STUDENT) {
          res.status(403).json({ message: 'Forbidden' })
          return
       }
-   }
 
-   // admin can delete any grade
-   await prisma.grade.delete({
-      where: {
-         id: parseInt(gradeId),
-      },
-   })
-})
+      // teacher can only delete grades of their students on their subjects
+      if (user.role == Roles.TEACHER) {
+         const teacherOnSubject = await prisma.subjectsOnTeachers.findFirst({
+            where: {
+               id: grade.subjectOnTeacherId,
+               teacherId: user.id,
+            },
+         })
+         if (!teacherOnSubject) {
+            res.status(403).json({ message: 'Forbidden' })
+            return
+         }
+      }
 
-gradesRouter.put('/:gradeId/:newValue', authorize('update', 'Grade'), async (req: Request, res: Response) => {
-   const { gradeId, newValue } = req.params
-   const user: User = req.body.user
-
-   // check if grade exists
-   const grade = await prisma.grade.findFirst({
-      where: {
-         id: parseInt(gradeId),
-      },
-   })
-
-   if (!grade) {
-      res.status(404).json({ message: 'Grade not found' })
-      return
-   }
-
-   // student cannot update grades
-   if (user.role == Roles.STUDENT) {
-      res.status(403).json({ message: 'Forbidden' })
-      return
-   }
-
-   // teacher can only update grades of their students on their subjects
-   if (user.role == Roles.TEACHER) {
-      const teacherOnSubject = await prisma.subjectsOnTeachers.findFirst({
+      // admin can delete any grade
+      await prisma.grade.delete({
          where: {
-            id: grade.subjectOnTeacherId,
-            teacherId: user.id,
+            id: parseInt(gradeId),
          },
       })
-      if (!teacherOnSubject) {
+   }
+)
+
+gradesRouter.put(
+   '/:gradeId/:newValue',
+   authorize('update', 'Grade'),
+   async (req: Request, res: Response) => {
+      const { gradeId, newValue } = req.params
+      const user: User = req.body.user
+
+      // check if grade exists
+      const grade = await prisma.grade.findFirst({
+         where: {
+            id: parseInt(gradeId),
+         },
+      })
+
+      if (!grade) {
+         res.status(404).json({ message: 'Grade not found' })
+         return
+      }
+
+      // student cannot update grades
+      if (user.role == Roles.STUDENT) {
          res.status(403).json({ message: 'Forbidden' })
          return
       }
+
+      // teacher can only update grades of their students on their subjects
+      if (user.role == Roles.TEACHER) {
+         const teacherOnSubject = await prisma.subjectsOnTeachers.findFirst({
+            where: {
+               id: grade.subjectOnTeacherId,
+               teacherId: user.id,
+            },
+         })
+         if (!teacherOnSubject) {
+            res.status(403).json({ message: 'Forbidden' })
+            return
+         }
+      }
+
+      // admin can update any grade
+      await prisma.grade.update({
+         where: {
+            id: parseInt(gradeId),
+         },
+         data: {
+            value: parseInt(newValue),
+         },
+      })
+
+      res.json({ message: 'Grade updated' })
    }
-
-   // admin can update any grade
-   await prisma.grade.update({
-      where: {
-         id: parseInt(gradeId),
-      },
-      data: {
-         value: parseInt(newValue),
-      },
-   })
-
-   res.json({ message: 'Grade updated' })
-})
+)
 
 export default gradesRouter

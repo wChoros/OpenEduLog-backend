@@ -3,7 +3,7 @@ import authRouter from './routes/auth'
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import {authorize} from './middleware/authorize'
+import { authorize } from './middleware/authorize'
 
 import { sessionVerify } from './middleware/session_verify'
 import gradesRouter from './routes/grades'
@@ -31,8 +31,6 @@ app.get('/', (req: Request, res: Response) => {
    res.send('Hello, OpenEduLog!')
 })
 
-
-
 // app.get('/grades/:id', sessionVerify, authorize('readGrades', 'student'), (req, res) => {
 //    res.json({ message: 'You can view this users grades.' });
 // });
@@ -42,7 +40,6 @@ app.use('/grades', sessionVerify, gradesRouter)
 app.use('/groups', sessionVerify, groupsRouter)
 app.use('/subjects', sessionVerify, subjectsRouter)
 app.use('/timetables', sessionVerify, timetablesRouter)
-
 
 app.listen(PORT, () => {
    console.log(`Server is running on http://localhost:${PORT}`)

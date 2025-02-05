@@ -5,68 +5,72 @@ import { authorize } from '../middleware/authorize'
 const timetableRouter = express.Router()
 const prisma = new PrismaClient()
 
-timetableRouter.get('/user/:userId/:weekNumber', authorize('read', 'Timetable'),  async (req, res) => {
-   const { userId, weekNumber } = req.params
-   const user: User = req.body.user
+timetableRouter.get(
+   '/user/:userId/:weekNumber',
+   authorize('read', 'Timetable'),
+   async (req, res) => {
+      const { userId, weekNumber } = req.params
+      const user: User = req.body.user
 
-   try {
-      // student and teachers can only see their own timetable
-      if (user.role == 'STUDENT' || user.role == 'TEACHER') {
-         if (user.id !== parseInt(userId)) {
-            res.status(403).json({ message: 'Forbidden' })
-            return
+      try {
+         // student and teachers can only see their own timetable
+         if (user.role == 'STUDENT' || user.role == 'TEACHER') {
+            if (user.id !== parseInt(userId)) {
+               res.status(403).json({ message: 'Forbidden' })
+               return
+            }
          }
+
+         // admin can see all timetables
+
+         // get data from prisma for all groups that the user is either a teacher of or a student in
+         const timetable = await prisma.timetable.findMany({
+            where: {
+               weekNumber: parseInt(weekNumber, 10),
+            },
+            include: {
+               subjectOnTeacher: {
+                  include: {
+                     subject: {
+                        select: {
+                           name: true,
+                           id: true,
+                        },
+                     },
+                     teacher: {
+                        select: {
+                           firstName: true,
+                           lastName: true,
+                           id: true,
+                        },
+                     },
+                  },
+               },
+               substitutionTeacher: {
+                  select: {
+                     firstName: true,
+                     lastName: true,
+                  },
+               },
+               group: {
+                  select: {
+                     name: true,
+                  },
+               },
+            },
+         })
+
+         console.log(timetable)
+
+         res.status(200).json(timetable)
+         return
+      } catch (error) {
+         res.status(500).json({ message: `Internal Server Error: ${error}` })
       }
-
-      // admin can see all timetables
-
-      // get data from prisma for all groups that the user is either a teacher of or a student in
-      const timetable = await prisma.timetable.findMany({
-         where: {
-            weekNumber: parseInt(weekNumber, 10),
-         },
-         include: {
-            subjectOnTeacher: {
-               include: {
-                  subject: {
-                     select: {
-                        name: true,
-                        id: true,
-                     },
-                  },
-                  teacher: {
-                     select: {
-                        firstName: true,
-                        lastName: true,
-                        id: true,
-                     },
-                  },
-               },
-            },
-            substitutionTeacher: {
-               select: {
-                  firstName: true,
-                  lastName: true,
-               },
-            },
-            group: {
-               select: {
-                  name: true,
-               },
-            },
-         },
-      })
-
-      console.log(timetable)
-
-      res.status(200).json(timetable)
-      return
-   } catch (error) {
-      res.status(500).json({ message: `Internal Server Error: ${error}` })
    }
-})
+)
 
-timetableRouter.get('/group/:groupId',authorize('read', 'Timetable'), async (req, res) => {
+timetableRouter.get('/group/:groupId', authorize('read', 'Timetable'), async (req, res) => {
    const { groupId } = req.params
    const user: User = req.body.user
 
@@ -125,7 +129,7 @@ timetableRouter.get('/group/:groupId',authorize('read', 'Timetable'), async (req
    }
 })
 
-timetableRouter.post('/', authorize('create', 'Timetable'),async (req, res) => {
+timetableRouter.post('/', authorize('create', 'Timetable'), async (req, res) => {
    const user: User = req.body.user
    const { groupId, subjectOnTeacherId, weekNumber, weekDay, lessonNumber } = req.body
 
@@ -159,38 +163,42 @@ timetableRouter.post('/', authorize('create', 'Timetable'),async (req, res) => {
    }
 })
 
-timetableRouter.put('/substitute/:recordId/:substitutionTeacherId', authorize('update', 'Timetable'), async (req, res) => {
-   const user: User = req.body.user
-   const { recordId, substitutionTeacherId } = req.params
+timetableRouter.put(
+   '/substitute/:recordId/:substitutionTeacherId',
+   authorize('update', 'Timetable'),
+   async (req, res) => {
+      const user: User = req.body.user
+      const { recordId, substitutionTeacherId } = req.params
 
-   if (!recordId || !substitutionTeacherId) {
-      res.status(400).json({ message: 'Missing fields' })
-      return
-   }
-
-   try {
-      // only admin can substitute a teacher
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
+      if (!recordId || !substitutionTeacherId) {
+         res.status(400).json({ message: 'Missing fields' })
          return
       }
 
-      // substitute a teacher
-      const timetable = await prisma.timetable.update({
-         where: {
-            id: parseInt(recordId),
-         },
-         data: {
-            substitutionTeacherId: parseInt(substitutionTeacherId),
-         },
-      })
+      try {
+         // only admin can substitute a teacher
+         if (user.role !== 'ADMIN') {
+            res.status(403).json({ message: 'Forbidden' })
+            return
+         }
 
-      res.status(200).json(timetable)
-      return
-   } catch (error) {
-      res.status(500).json({ message: `Internal Server Error: ${error}` })
+         // substitute a teacher
+         const timetable = await prisma.timetable.update({
+            where: {
+               id: parseInt(recordId),
+            },
+            data: {
+               substitutionTeacherId: parseInt(substitutionTeacherId),
+            },
+         })
+
+         res.status(200).json(timetable)
+         return
+      } catch (error) {
+         res.status(500).json({ message: `Internal Server Error: ${error}` })
+      }
    }
-})
+)
 
 timetableRouter.put('/cancel/:recordId', async (req, res) => {
    const user: User = req.body.user
@@ -226,7 +234,7 @@ timetableRouter.put('/cancel/:recordId', async (req, res) => {
    }
 })
 
-timetableRouter.put('/restore/:recordId',authorize('update', 'Timetable'),  async (req, res) => {
+timetableRouter.put('/restore/:recordId', authorize('update', 'Timetable'), async (req, res) => {
    const user: User = req.body.user
    const { recordId } = req.params
 
@@ -298,7 +306,7 @@ timetableRouter.put('/:recordId', authorize('update', 'Timetable'), async (req, 
    }
 })
 
-timetableRouter.delete('/:recordId', authorize('delete', 'Timetable') ,async (req, res) => {
+timetableRouter.delete('/:recordId', authorize('delete', 'Timetable'), async (req, res) => {
    const user: User = req.body.user
    const { recordId } = req.params
 

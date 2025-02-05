@@ -9,51 +9,51 @@ export const sessionVerify = async (
    res: Response,
    next: NextFunction
 ): Promise<void> => {
-   // if (!req.cookies) {
-   //    res.status(401).json({ message: 'Unauthorized' })
-   //    return
-   // }
-   // const { session_token } = req.cookies
-   //
-   // if (!session_token) {
-   //    res.status(401).json({ message: 'Unauthorized' })
-   //    return
-   // }
-   //
-   // const session = await prisma.session.findFirst({
-   //    where: {
-   //       token: session_token,
-   //    },
-   // })
-   // console.log(session)
-   //
-   // if (!session) {
-   //    res.status(401).json({ message: 'Invalid session' })
-   //    return
-   // }
-   //
-   // if (session.expiredAt < new Date()) {
-   //    await prisma.session.delete({
-   //       where: {
-   //          id: session.id,
-   //       },
-   //    })
-   //    res.status(401).json({ message: 'Session expired' })
-   //    return
-   // }
-   //
-   // await prisma.session.update({
-   //    where: {
-   //       id: 1
-   //    },
-   //    data: {
-   //       expiredAt: new Date(new Date().getTime() + SESSION_EXPIRY_TIME),
-   //    },
-   // })
+   if (!req.cookies) {
+      res.status(401).json({ message: 'Unauthorized' })
+      return
+   }
+   const { session_token } = req.cookies
+
+   if (!session_token) {
+      res.status(401).json({ message: 'Unauthorized' })
+      return
+   }
+
+   const session = await prisma.session.findFirst({
+      where: {
+         token: session_token,
+      },
+   })
+   console.log(session)
+
+   if (!session) {
+      res.status(401).json({ message: 'Invalid session' })
+      return
+   }
+
+   if (session.expiredAt < new Date()) {
+      await prisma.session.delete({
+         where: {
+            id: session.id,
+         },
+      })
+      res.status(401).json({ message: 'Session expired' })
+      return
+   }
+
+   await prisma.session.update({
+      where: {
+         id: session.id,
+      },
+      data: {
+         expiredAt: new Date(new Date().getTime() + SESSION_EXPIRY_TIME),
+      },
+   })
 
    req.body.user = await prisma.user.findFirst({
       where: {
-         id: 2,
+         id: session.userId,
       },
    })
    console.log(req.body)
