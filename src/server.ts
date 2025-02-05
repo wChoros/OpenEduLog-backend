@@ -36,7 +36,6 @@ app.use('/groups', sessionVerify, groupsRouter)
 app.use('/subjects', sessionVerify, subjectsRouter)
 app.use('/timetables', sessionVerify, timetablesRouter)
 
-
 app.listen(PORT, () => {
    console.log(`Server is running on http://localhost:${PORT}`)
 })
