@@ -69,17 +69,17 @@ groupsRouter.get(
 
       // admin can see all groups
 
-      // get groups for teacher
-
-      const groups = await prisma.group.findMany({
-         where: {
-            GroupsOnTeachersOnSubjects: {
-               some: {
+   const groups = await prisma.group.findMany({
+      where: {
+         GroupsOnSubjectsOnTeachers: {
+            some: {
+               subjectOnTeacher: {
                   teacherId: parseInt(teacherId),
                },
             },
          },
-      })
+      },
+   })
 
       res.status(200).json(groups)
    }
@@ -170,26 +170,24 @@ groupsRouter.post(
          return
       }
 
-      // check if teacher is teaching the subject
-      const teacherOnSubject = await prisma.groupsOnSubjectsOnTeachers.findFirst({
-         where: {
-            teacherId,
-            groupId,
-            subjectId,
-         },
-      })
-      if (!teacherOnSubject) {
-         res.status(403).json({ message: 'Teacher is not teaching this subject' })
-         return
-      }
+   // check if teacher is teaching the subject
+   const SubjectOnTeacher = await prisma.subjectsOnTeachers.findFirst({
+      where: {
+         teacherId: parseInt(teacherId),
+         subjectId: parseInt(subjectId),
+      },
+   })
+   if (!SubjectOnTeacher) {
+      res.status(403).json({ message: 'Teacher is not teaching this subject' })
+      return
+   }
 
-      const teacherOnGroup = await prisma.groupsOnSubjectsOnTeachers.create({
-         data: {
-            teacherId,
-            groupId,
-            subjectId,
-         },
-      })
+   const teacherOnGroup = await prisma.groupsOnSubjectsOnTeachers.create({
+      data: {
+         subjectOnTeacherId: SubjectOnTeacher.id,
+         groupId: parseInt(groupId),
+      },
+   })
 
       res.status(201).json(teacherOnGroup)
    }
@@ -232,13 +230,24 @@ groupsRouter.delete(
          return
       }
 
-      await prisma.groupsOnSubjectsOnTeachers.deleteMany({
-         where: {
-            teacherId,
-            groupId,
-            subjectId,
-         },
-      })
+   const subjectOnTeacher = await prisma.subjectsOnTeachers.findFirst({
+      where: {
+         teacherId: teacherId,
+         subjectId: subjectId,
+      },
+   })
+
+   if (!subjectOnTeacher) {
+      res.status(404).json({ message: 'Teacher is not teaching this subject' })
+      return
+   }
+
+   await prisma.groupsOnSubjectsOnTeachers.deleteMany({
+      where: {
+         subjectOnTeacherId: subjectOnTeacher.id,
+         groupId: groupId,
+      },
+   })
 
       res.status(204).json({ message: 'Teacher removed from group' })
    }
