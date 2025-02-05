@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
+
   // Clear all data from all tables (in the right order to avoid foreign key violations)
   await prisma.$executeRaw`TRUNCATE TABLE "GroupsOnSubjectsOnTeachers" CASCADE;`
   await prisma.$executeRaw`TRUNCATE TABLE "StudentsOnGroups" CASCADE;`
@@ -200,20 +201,8 @@ async function main() {
       }
     }
   }
-  //
-  // // Create Sessions
-  // for (const user of users) {
-  //   await prisma.session.create({
-  //     data: {
-  //       token: faker.string.uuid(),
-  //       expiredAt: faker.date.future(),
-  //       userId: user.id,
-  //     },
-  //   });
-  // }
 
   console.log('Database seeded successfully with all data!');
-
 }
 
 main()
