@@ -28,12 +28,16 @@ subjectsRouter.get('/student/:studentId', async (req: Request, res: Response) =>
    // get subjects for student
    const subjects = await prisma.subject.findMany({
       where: {
-         GroupsOnTeachersOnSubjects: {
+         SubjectsOnTeachers: {
             some: {
-               group: {
-                  StudentsOnGroups: {
-                     some: {
-                        studentId: parseInt(studentId),
+               GroupsOnSubjectsOnTeachers: {
+                  some: {
+                     group: {
+                        StudentsOnGroups: {
+                           some: {
+                              studentId: parseInt(studentId),
+                           },
+                        },
                      },
                   },
                },
@@ -41,8 +45,16 @@ subjectsRouter.get('/student/:studentId', async (req: Request, res: Response) =>
          },
       },
       include: {
-         SubjectsOnTeachers: true,
-         GroupsOnTeachersOnSubjects: true,
+         // Include subjects->teachers->groups
+         SubjectsOnTeachers: {
+            include: {
+               GroupsOnSubjectsOnTeachers: {
+                  include: {
+                     group: true,
+                  },
+               },
+            },
+         },
       },
    })
 
@@ -81,8 +93,18 @@ subjectsRouter.get('teacher/:teacherId', async (req: Request, res: Response) => 
          },
       },
       include: {
-         SubjectsOnTeachers: true,
-         GroupsOnTeachersOnSubjects: true,
+         SubjectsOnTeachers: {
+            include: {
+               // This is where the join table actually lives
+               GroupsOnSubjectsOnTeachers: {
+                  include: {
+                     group: true,
+                  },
+               },
+               // If you also want teacher info, include it as well:
+               teacher: true,
+            },
+         },
       },
    })
 
@@ -124,15 +146,26 @@ subjectsRouter.get('/group/:groupId', async (req: Request, res: Response) => {
    // get subjects for group
    const subjects = await prisma.subject.findMany({
       where: {
-         GroupsOnTeachersOnSubjects: {
+         SubjectsOnTeachers: {
             some: {
-               groupId: parseInt(groupId),
+               GroupsOnSubjectsOnTeachers: {
+                  some: {
+                     groupId: parseInt(groupId),
+                  },
+               },
             },
          },
       },
       include: {
-         SubjectsOnTeachers: true,
-         GroupsOnTeachersOnSubjects: true,
+         SubjectsOnTeachers: {
+            include: {
+               GroupsOnSubjectsOnTeachers: {
+                  include: {
+                     group: true, // Include the actual group data
+                  },
+               },
+            },
+         },
       },
    })
 
