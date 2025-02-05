@@ -29,17 +29,18 @@ subjectsRouter.get(
 
       // admin can see all subjects
 
-   // get subjects for student
-   const subjects = await prisma.subject.findMany({
-      where: {
-         SubjectsOnTeachers: {
-            some: {
-               GroupsOnSubjectsOnTeachers: {
-                  some: {
-                     group: {
-                        StudentsOnGroups: {
-                           some: {
-                              studentId: parseInt(studentId),
+      // get subjects for student
+      const subjects = await prisma.subject.findMany({
+         where: {
+            SubjectsOnTeachers: {
+               some: {
+                  GroupsOnSubjectsOnTeachers: {
+                     some: {
+                        group: {
+                           StudentsOnGroups: {
+                              some: {
+                                 studentId: parseInt(studentId),
+                              },
                            },
                         },
                      },
@@ -47,20 +48,19 @@ subjectsRouter.get(
                },
             },
          },
-      },
-      include: {
-         // Include subjects->teachers->groups
-         SubjectsOnTeachers: {
-            include: {
-               GroupsOnSubjectsOnTeachers: {
-                  include: {
-                     group: true,
+         include: {
+            // Include subjects->teachers->groups
+            SubjectsOnTeachers: {
+               include: {
+                  GroupsOnSubjectsOnTeachers: {
+                     include: {
+                        group: true,
+                     },
                   },
                },
             },
          },
-      },
-   })
+      })
 
       res.status(200).json(subjects)
       return
@@ -91,30 +91,30 @@ subjectsRouter.get(
 
       // admin can see all subjects
 
-   // get subjects for teacher
-   const subjects = await prisma.subject.findMany({
-      where: {
-         SubjectsOnTeachers: {
-            some: {
-               teacherId: parseInt(teacherId),
-            },
-         },
-      },
-      include: {
-         SubjectsOnTeachers: {
-            include: {
-               // This is where the join table actually lives
-               GroupsOnSubjectsOnTeachers: {
-                  include: {
-                     group: true,
-                  },
+      // get subjects for teacher
+      const subjects = await prisma.subject.findMany({
+         where: {
+            SubjectsOnTeachers: {
+               some: {
+                  teacherId: parseInt(teacherId),
                },
-               // If you also want teacher info, include it as well:
-               teacher: true,
             },
          },
-      },
-   })
+         include: {
+            SubjectsOnTeachers: {
+               include: {
+                  // This is where the join table actually lives
+                  GroupsOnSubjectsOnTeachers: {
+                     include: {
+                        group: true,
+                     },
+                  },
+                  // If you also want teacher info, include it as well:
+                  teacher: true,
+               },
+            },
+         },
+      })
 
       res.status(201).json(subjects)
       return
@@ -155,31 +155,31 @@ subjectsRouter.get(
 
       // admin can see all subjects
 
-   // get subjects for group
-   const subjects = await prisma.subject.findMany({
-      where: {
-         SubjectsOnTeachers: {
-            some: {
-               GroupsOnSubjectsOnTeachers: {
-                  some: {
-                     groupId: parseInt(groupId),
+      // get subjects for group
+      const subjects = await prisma.subject.findMany({
+         where: {
+            SubjectsOnTeachers: {
+               some: {
+                  GroupsOnSubjectsOnTeachers: {
+                     some: {
+                        groupId: parseInt(groupId),
+                     },
                   },
                },
             },
          },
-      },
-      include: {
-         SubjectsOnTeachers: {
-            include: {
-               GroupsOnSubjectsOnTeachers: {
-                  include: {
-                     group: true, // Include the actual group data
+         include: {
+            SubjectsOnTeachers: {
+               include: {
+                  GroupsOnSubjectsOnTeachers: {
+                     include: {
+                        group: true, // Include the actual group data
+                     },
                   },
                },
             },
          },
-      },
-   })
+      })
 
       res.status(200).json(subjects)
       return
