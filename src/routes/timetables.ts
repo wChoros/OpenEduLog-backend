@@ -9,24 +9,19 @@ timetableRouter.get(
    '/user/:userId/:weekNumber',
    authorize('read', 'Timetable'),
    async (req, res) => {
-      const { userId, weekNumber } = req.params
-      const user: User = req.body.user
+      const { weekNumber, userId } = req.params
 
       try {
-         // student and teachers can only see their own timetable
-         if (user.role == 'STUDENT' || user.role == 'TEACHER') {
-            if (user.id !== parseInt(userId)) {
-               res.status(403).json({ message: 'Forbidden' })
-               return
-            }
-         }
-
          // admin can see all timetables
 
          // get data from prisma for all groups that the user is either a teacher of or a student in
          const timetable = await prisma.timetable.findMany({
             where: {
                weekNumber: parseInt(weekNumber, 10),
+               OR: [
+                  { subjectOnTeacher: { teacherId: parseInt(userId, 10) } },
+                  { group: { StudentsOnGroups: { some: { studentId: parseInt(userId, 10) } } } },
+               ],
             },
             include: {
                subjectOnTeacher: {
@@ -59,7 +54,6 @@ timetableRouter.get(
                },
             },
          })
-
          console.log(timetable)
 
          res.status(200).json(timetable)
@@ -72,17 +66,7 @@ timetableRouter.get(
 
 timetableRouter.get('/group/:groupId', authorize('read', 'Timetable'), async (req, res) => {
    const { groupId } = req.params
-   const user: User = req.body.user
-
    try {
-      // student and teachers can only see their own timetable
-      if (user.role == 'STUDENT' || user.role == 'TEACHER') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
-
-      // admin can see all timetables
-
       // get data from prisma for all groups that the user is either a teacher of or a student in
       const timetable = await prisma.timetable.findMany({
          where: {
@@ -167,7 +151,6 @@ timetableRouter.put(
    '/substitute/:recordId/:substitutionTeacherId',
    authorize('update', 'Timetable'),
    async (req, res) => {
-      const user: User = req.body.user
       const { recordId, substitutionTeacherId } = req.params
 
       if (!recordId || !substitutionTeacherId) {
@@ -176,12 +159,6 @@ timetableRouter.put(
       }
 
       try {
-         // only admin can substitute a teacher
-         if (user.role !== 'ADMIN') {
-            res.status(403).json({ message: 'Forbidden' })
-            return
-         }
-
          // substitute a teacher
          const timetable = await prisma.timetable.update({
             where: {
@@ -200,8 +177,7 @@ timetableRouter.put(
    }
 )
 
-timetableRouter.put('/cancel/:recordId', async (req, res) => {
-   const user: User = req.body.user
+timetableRouter.put('/cancel/:recordId', authorize('update', 'Timetable'), async (req, res) => {
    const { recordId } = req.params
 
    if (!recordId) {
@@ -210,12 +186,6 @@ timetableRouter.put('/cancel/:recordId', async (req, res) => {
    }
 
    try {
-      // only admin can cancel a timetable record
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
-
       // cancel a timetable record
       const timetable = await prisma.timetable.update({
          where: {
@@ -235,7 +205,6 @@ timetableRouter.put('/cancel/:recordId', async (req, res) => {
 })
 
 timetableRouter.put('/restore/:recordId', authorize('update', 'Timetable'), async (req, res) => {
-   const user: User = req.body.user
    const { recordId } = req.params
 
    if (!recordId) {
@@ -244,12 +213,6 @@ timetableRouter.put('/restore/:recordId', authorize('update', 'Timetable'), asyn
    }
 
    try {
-      // only admin can restore a timetable record
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
-
       // restore a timetable record
       const timetable = await prisma.timetable.update({
          where: {
@@ -269,7 +232,6 @@ timetableRouter.put('/restore/:recordId', authorize('update', 'Timetable'), asyn
 })
 
 timetableRouter.put('/:recordId', authorize('update', 'Timetable'), async (req, res) => {
-   const user: User = req.body.user
    const { recordId } = req.params
    const { groupId, subjectOnTeacherId, weekNumber, weekDay, lessonNumber } = req.body
 
@@ -279,12 +241,6 @@ timetableRouter.put('/:recordId', authorize('update', 'Timetable'), async (req, 
    }
 
    try {
-      // only admin can update a timetable record
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
-
       // update a timetable record
       const timetable = await prisma.timetable.update({
          where: {
@@ -307,7 +263,6 @@ timetableRouter.put('/:recordId', authorize('update', 'Timetable'), async (req, 
 })
 
 timetableRouter.delete('/:recordId', authorize('delete', 'Timetable'), async (req, res) => {
-   const user: User = req.body.user
    const { recordId } = req.params
 
    if (!recordId) {
@@ -316,12 +271,6 @@ timetableRouter.delete('/:recordId', authorize('delete', 'Timetable'), async (re
    }
 
    try {
-      // only admin can delete a timetable record
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
-
       // delete a timetable record
       await prisma.timetable.delete({
          where: {

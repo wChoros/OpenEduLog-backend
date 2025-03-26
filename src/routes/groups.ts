@@ -11,23 +11,6 @@ groupsRouter.get(
    authorize('read', 'Group'),
    async (req: Request, res: Response) => {
       const { studentId } = req.params
-      const user = req.body.user
-
-      // student can only see their own groups
-      if (user.role == 'STUDENT') {
-         if (user.id !== parseInt(studentId)) {
-            res.status(403).json({ message: 'Forbidden' })
-            return
-         }
-      }
-
-      // teacher can only see groups they teach
-      if (user.role == 'TEACHER') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
-
-      // admin can see all groups
 
       // get groups for student
 
@@ -51,23 +34,6 @@ groupsRouter.get(
    authorize('read', 'Group'),
    async (req: Request, res: Response) => {
       const { teacherId } = req.params
-      const user = req.body.user
-
-      // student can only see their own groups
-      if (user.role == 'STUDENT') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
-
-      // teacher can only see groups they teach
-      if (user.role == 'TEACHER') {
-         if (user.id !== parseInt(teacherId)) {
-            res.status(403).json({ message: 'Forbidden' })
-            return
-         }
-      }
-
-      // admin can see all groups
 
       const groups = await prisma.group.findMany({
          where: {
@@ -86,14 +52,7 @@ groupsRouter.get(
 )
 
 groupsRouter.post('/create', authorize('create', 'Group'), async (req: Request, res: Response) => {
-   const user = req.body.user
    const { name } = req.body
-
-   // only admin can create groups
-   if (user.role !== 'ADMIN') {
-      res.status(403).json({ message: 'Forbidden' })
-      return
-   }
 
    const group = await prisma.group.create({
       data: {
@@ -108,14 +67,7 @@ groupsRouter.delete(
    '/delete',
    authorize('delete', 'Group'),
    async (req: Request, res: Response) => {
-      const user = req.body.user
       const { groupId } = req.body
-
-      // only admin can delete groups
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
 
       await prisma.studentsOnGroups.deleteMany({
          where: {
@@ -137,14 +89,7 @@ groupsRouter.post(
    '/add-student',
    authorize('addTo', 'Group'),
    async (req: Request, res: Response) => {
-      const user = req.body.user
       const { studentId, groupId } = req.body
-
-      // only admin can add students to groups
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
 
       const studentOnGroup = await prisma.studentsOnGroups.create({
          data: {
@@ -161,14 +106,7 @@ groupsRouter.post(
    '/add-teacher',
    authorize('addTo', 'Group'),
    async (req: Request, res: Response) => {
-      const user = req.body.user
       const { teacherId, groupId, subjectId } = req.body
-
-      // only admin can add teachers to groups
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
 
       // check if teacher is teaching the subject
       const SubjectOnTeacher = await prisma.subjectsOnTeachers.findFirst({
@@ -197,14 +135,7 @@ groupsRouter.delete(
    '/remove-student',
    authorize('removeFrom', 'Group'),
    async (req: Request, res: Response) => {
-      const user = req.body.user
       const { studentId, groupId } = req.body
-
-      // only admin can remove students from groups
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
 
       await prisma.studentsOnGroups.deleteMany({
          where: {
@@ -221,14 +152,7 @@ groupsRouter.delete(
    '/remove-teacher',
    authorize('removeFrom', 'Group'),
    async (req: Request, res: Response) => {
-      const user = req.body.user
       const { teacherId, groupId, subjectId } = req.body
-
-      // only admin can remove teachers from groups
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
 
       const subjectOnTeacher = await prisma.subjectsOnTeachers.findFirst({
          where: {
