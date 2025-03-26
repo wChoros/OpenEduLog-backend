@@ -20,6 +20,11 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.2.1",
+
+    "@casl/ability": "^6.7.3",
+    "@faker-js/faker": "^9.4.0",
+    "@prisma/client": "^6.3.0",
+
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
