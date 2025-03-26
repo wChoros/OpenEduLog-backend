@@ -20,6 +20,7 @@
   "description": "",
   "dependencies": {
     "@casl/ability": "^6.7.3",
+    "@faker-js/faker": "^9.4.0",
     "@prisma/client": "^6.3.0",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
@@ -53,10 +54,10 @@
     "globals": "^15.14.0",
     "jest": "^29.7.0",
     "prettier": "^3.4.2",
-    "prisma": "^6.3.0",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.20.0",
+    "prisma": "^6.3.0"
   }
 }
