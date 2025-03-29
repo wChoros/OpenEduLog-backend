@@ -123,8 +123,7 @@ model Grade {
 
 model Timetable {
   id                    Int      @id @default(autoincrement())
-  weekNumber            Int
-  weekDay               WeekDays
+  date                  DateTime
   lessonNumber          Int
   subjectOnTeacherId    Int
   groupId               Int

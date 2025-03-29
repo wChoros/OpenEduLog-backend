@@ -6,10 +6,10 @@ const timetableRouter = express.Router()
 const prisma = new PrismaClient()
 
 timetableRouter.get(
-   '/user/:userId/:weekNumber',
+   '/user/:userId/:startDate/:endDate',
    authorize('read', 'Timetable'),
    async (req, res) => {
-      const { weekNumber, userId } = req.params
+      const { startDate, endDate, userId } = req.params
 
       try {
          // admin can see all timetables
@@ -17,7 +17,10 @@ timetableRouter.get(
          // get data from prisma for all groups that the user is either a teacher of or a student in
          const timetable = await prisma.timetable.findMany({
             where: {
-               weekNumber: parseInt(weekNumber, 10),
+               date: {
+                  gte: startDate,
+                  lte: endDate,
+               },
                OR: [
                   { subjectOnTeacher: { teacherId: parseInt(userId, 10) } },
                   { group: { StudentsOnGroups: { some: { studentId: parseInt(userId, 10) } } } },
@@ -115,9 +118,9 @@ timetableRouter.get('/group/:groupId', authorize('read', 'Timetable'), async (re
 
 timetableRouter.post('/', authorize('create', 'Timetable'), async (req, res) => {
    const user: User = req.body.user
-   const { groupId, subjectOnTeacherId, weekNumber, weekDay, lessonNumber } = req.body
+   const { groupId, subjectOnTeacherId, date, lessonNumber } = req.body
 
-   if (!groupId || !subjectOnTeacherId || !weekNumber || !weekDay || !lessonNumber) {
+   if (!groupId || !subjectOnTeacherId || !date || !lessonNumber) {
       res.status(400).json({ message: 'Missing fields' })
       return
    }
@@ -134,8 +137,7 @@ timetableRouter.post('/', authorize('create', 'Timetable'), async (req, res) => 
          data: {
             groupId,
             subjectOnTeacherId,
-            weekNumber,
-            weekDay,
+            date,
             lessonNumber,
          },
       })
@@ -233,9 +235,9 @@ timetableRouter.put('/restore/:recordId', authorize('update', 'Timetable'), asyn
 
 timetableRouter.put('/:recordId', authorize('update', 'Timetable'), async (req, res) => {
    const { recordId } = req.params
-   const { groupId, subjectOnTeacherId, weekNumber, weekDay, lessonNumber } = req.body
+   const { groupId, subjectOnTeacherId, date, lessonNumber } = req.body
 
-   if (!groupId || !subjectOnTeacherId || !weekNumber || !weekDay || !lessonNumber) {
+   if (!groupId || !subjectOnTeacherId || !date || !lessonNumber) {
       res.status(400).json({ message: 'Missing fields' })
       return
    }
@@ -249,8 +251,7 @@ timetableRouter.put('/:recordId', authorize('update', 'Timetable'), async (req, 
          data: {
             groupId,
             subjectOnTeacherId,
-            weekNumber,
-            weekDay,
+            date,
             lessonNumber,
          },
       })
