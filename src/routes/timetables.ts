@@ -10,16 +10,22 @@ timetableRouter.get(
    authorize('read', 'Timetable'),
    async (req, res) => {
       const { startDate, endDate, userId } = req.params
-
       try {
-         // admin can see all timetables
+         // Parse ISO string dates to JavaScript Date objects
+         const start = new Date(startDate)
+         const end = new Date(endDate)
 
-         // get data from prisma for all groups that the user is either a teacher of or a student in
+         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            res.status(400).json({ message: 'Invalid date format' })
+            return
+         }
+
+         // Get data from prisma for all groups that the user is either a teacher of or a student in
          const timetable = await prisma.timetable.findMany({
             where: {
                date: {
-                  gte: startDate,
-                  lte: endDate,
+                  gte: start,
+                  lte: end,
                },
                OR: [
                   { subjectOnTeacher: { teacherId: parseInt(userId, 10) } },
@@ -129,6 +135,29 @@ timetableRouter.post('/', authorize('create', 'Timetable'), async (req, res) => 
       // only admin can create a timetable
       if (user.role !== 'ADMIN') {
          res.status(403).json({ message: 'Forbidden' })
+         return
+      }
+
+      // Check if the group already has a lesson on this date and lesson number
+      const startOfDay = new Date(date)
+      startOfDay.setHours(0, 0, 0, 0)
+
+      const endOfDay = new Date(date)
+      endOfDay.setHours(23, 59, 59, 999)
+
+      const existingLesson = await prisma.timetable.findFirst({
+         where: {
+         groupId,
+         date: {
+            gte: startOfDay,
+            lte: endOfDay,
+         },
+         lessonNumber,
+         },
+      })
+
+      if (existingLesson) {
+         res.status(400).json({ message: 'A lesson already exists for this group on the specified date and lesson number' })
          return
       }
 

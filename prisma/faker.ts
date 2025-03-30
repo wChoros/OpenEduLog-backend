@@ -141,18 +141,27 @@ async function main() {
     Array.from({ length: 100 }).map(() => {
       const subjectOnTeacher = subjectsOnTeachers[faker.number.int({ min: 0, max: subjectsOnTeachers.length - 1 })]
       const group = groups[faker.number.int({ min: 0, max: groups.length - 1 })]
-      const substitutionTeacher = faker.datatype.boolean() 
+      const substitutionTeacher = faker.datatype.boolean(0.05) 
         ? users.find(u => u.role === 'TEACHER') 
         : null
 
+      // Generate a random date within the current week
+      const today = new Date()
+      const startDate = new Date(today.setDate(today.getDate() - 20))
+      const endDate = new Date(today.setDate(startDate.getDate() + 40))
+      let randomDate: Date;
+      do {
+        randomDate = faker.date.between({ from: startDate, to: endDate });
+      } while (randomDate.getDay() === 0 || randomDate.getDay() === 6);
+
       return prisma.timetable.create({
         data: {
-          date: faker.date.future(),
+          date: randomDate,
           lessonNumber: faker.number.int({ min: 1, max: 6 }),
           subjectOnTeacherId: subjectOnTeacher.id,
           groupId: group.id,
           substitutionTeacherId: substitutionTeacher?.id,
-          isCanceled: faker.datatype.boolean()
+          isCanceled: faker.datatype.boolean(0.05)
         }
       })
     })
