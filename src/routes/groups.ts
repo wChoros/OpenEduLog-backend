@@ -8,28 +8,9 @@ const prisma = new PrismaClient()
 // get groups for student
 groupsRouter.get(
    '/student/:studentId',
-   authorize('read', 'Group'),
+   authorize('readMany', 'Group', (req) => Number(req.params.studentId)),
    async (req: Request, res: Response) => {
       const { studentId } = req.params
-      const user = req.body.user
-
-      // student can only see their own groups
-      if (user.role == 'STUDENT') {
-         if (user.id !== parseInt(studentId)) {
-            res.status(403).json({ message: 'Forbidden' })
-            return
-         }
-      }
-
-      // teacher can only see groups they teach
-      if (user.role == 'TEACHER') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
-
-      // admin can see all groups
-
-      // get groups for student
 
       const groups = await prisma.group.findMany({
          where: {
@@ -48,26 +29,9 @@ groupsRouter.get(
 // get groups for teacher
 groupsRouter.get(
    '/teacher/:teacherId',
-   authorize('read', 'Group'),
+   authorize('read', 'Group', (req) => Number(req.params.teacherId)),
    async (req: Request, res: Response) => {
       const { teacherId } = req.params
-      const user = req.body.user
-
-      // student can only see their own groups
-      if (user.role == 'STUDENT') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
-
-      // teacher can only see groups they teach
-      if (user.role == 'TEACHER') {
-         if (user.id !== parseInt(teacherId)) {
-            res.status(403).json({ message: 'Forbidden' })
-            return
-         }
-      }
-
-      // admin can see all groups
 
       const groups = await prisma.group.findMany({
          where: {
@@ -85,37 +49,27 @@ groupsRouter.get(
    }
 )
 
-groupsRouter.post('/create', authorize('create', 'Group'), async (req: Request, res: Response) => {
-   const user = req.body.user
-   const { name } = req.body
+groupsRouter.post(
+   '/create',
+   authorize('add', 'Group', (req) => Number(req.body.user.id)),
+   async (req: Request, res: Response) => {
+      const { name } = req.body
 
-   // only admin can create groups
-   if (user.role !== 'ADMIN') {
-      res.status(403).json({ message: 'Forbidden' })
-      return
+      const group = await prisma.group.create({
+         data: {
+            name,
+         },
+      })
+
+      res.status(201).json(group)
    }
-
-   const group = await prisma.group.create({
-      data: {
-         name,
-      },
-   })
-
-   res.status(201).json(group)
-})
+)
 
 groupsRouter.delete(
    '/delete',
-   authorize('delete', 'Group'),
+   authorize('delete', 'Group', (req) => Number(req.body.user.id)),
    async (req: Request, res: Response) => {
-      const user = req.body.user
       const { groupId } = req.body
-
-      // only admin can delete groups
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
 
       await prisma.studentsOnGroups.deleteMany({
          where: {
@@ -135,16 +89,9 @@ groupsRouter.delete(
 
 groupsRouter.post(
    '/add-student',
-   authorize('addTo', 'Group'),
+   authorize('addTo', 'Group', (req) => Number(req.body.user.id)),
    async (req: Request, res: Response) => {
-      const user = req.body.user
       const { studentId, groupId } = req.body
-
-      // only admin can add students to groups
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
 
       const studentOnGroup = await prisma.studentsOnGroups.create({
          data: {
@@ -159,16 +106,9 @@ groupsRouter.post(
 
 groupsRouter.post(
    '/add-teacher',
-   authorize('addTo', 'Group'),
+   authorize('addTo', 'Group', (req) => Number(req.body.user.id)),
    async (req: Request, res: Response) => {
-      const user = req.body.user
       const { teacherId, groupId, subjectId } = req.body
-
-      // only admin can add teachers to groups
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
 
       // check if teacher is teaching the subject
       const SubjectOnTeacher = await prisma.subjectsOnTeachers.findFirst({
@@ -195,16 +135,9 @@ groupsRouter.post(
 
 groupsRouter.delete(
    '/remove-student',
-   authorize('removeFrom', 'Group'),
+   authorize('removeFrom', 'Group', (req) => Number(req.body.user.id)),
    async (req: Request, res: Response) => {
-      const user = req.body.user
       const { studentId, groupId } = req.body
-
-      // only admin can remove students from groups
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
 
       await prisma.studentsOnGroups.deleteMany({
          where: {
@@ -219,16 +152,9 @@ groupsRouter.delete(
 
 groupsRouter.delete(
    '/remove-teacher',
-   authorize('removeFrom', 'Group'),
+   authorize('removeFrom', 'Group', (req) => Number(req.body.user.id)),
    async (req: Request, res: Response) => {
-      const user = req.body.user
       const { teacherId, groupId, subjectId } = req.body
-
-      // only admin can remove teachers from groups
-      if (user.role !== 'ADMIN') {
-         res.status(403).json({ message: 'Forbidden' })
-         return
-      }
 
       const subjectOnTeacher = await prisma.subjectsOnTeachers.findFirst({
          where: {

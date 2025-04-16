@@ -1,11 +1,27 @@
-import { Request, Response, NextFunction } from 'express'
-import { defineAbilitiesFor } from '../RBAC/abilities'
+import { Request, Response, NextFunction, RequestHandler } from 'express'
+import defineAbilityFor from '../RBAC/abilities'
 import { Actions, Subjects } from '../RBAC/abilities'
+import { Grade } from '../RBAC/models'
+import { Group } from '../RBAC/models'
+import { Subject } from '../RBAC/models'
+import { Timetable } from '../RBAC/models'
+import { Message } from '../RBAC/models'
 
-//middleware to check if user is authorized to perform action on subject based on the user's role (abilities.ts)
-export const authorize = (action: Actions, subject: Subjects) => {
-   return (req: Request, res: Response, next: NextFunction) => {
+export const authorize = (
+   action: Actions,
+   subject: Subjects,
+   getId?: (req: Request) => number | undefined
+): RequestHandler => {
+   return async (req: Request, res: Response, next: NextFunction): Promise <void> => {
+      const id = getId ? getId(req) : undefined
+
       const user = req.body.user
+
+
+      console.log('User:', user)
+      console.log('Action:', action)
+      console.log('Subject:', subject)
+
 
       if (!user) {
          console.log('Undefined user.')
@@ -13,15 +29,52 @@ export const authorize = (action: Actions, subject: Subjects) => {
          return
       }
 
-      const ability = defineAbilitiesFor(user)
-      console.log(`Checking if user can ${action} on ${subject}`)
-
-      if (ability.can(action, subject)) {
-         console.log('Access granted.')
-         next()
-      } else {
-         console.log('Access denied.')
-         res.status(403).json({ message: 'Forbidden' })
+      if (!id) {
+         console.log('Undefined ID.')
+         res.status(400).json({ message: 'ID not provided' })
+         return
       }
+
+      if (isNaN(id)) {
+         console.log('Invalid ID in params.')
+         res.status(400).json({ message: 'Invalid ID' })
+         return
+      }
+
+      console.log(`Checking if user ${user.id} can ${action} on ${subject} with ID ${id}`)
+
+      const SomeClass = returnClassOnSubject(subject)
+      let someData = new SomeClass(id)
+
+      const ability = defineAbilityFor(user)
+
+      console.log('Subject instance:', someData)
+
+      if (ability.can(action, someData)) {
+         console.log('Access granted.')
+         return next()
+      }
+
+      console.log('Access denied.')
+      res.status(403).json({ message: 'Forbidden' })
+   }
+}
+
+function returnClassOnSubject(
+   subject: Subjects
+): new (id: number) => Grade | Group | Subject | Timetable | Message {
+   switch (subject) {
+      case 'Grade':
+         return Grade
+      case 'Group':
+         return Group
+      case 'Subject':
+         return Subject
+      case 'Timetable':
+         return Timetable
+      case 'Message':
+         return Message
+      default:
+         throw new Error(`Invalid subject: ${subject}`)
    }
 }
