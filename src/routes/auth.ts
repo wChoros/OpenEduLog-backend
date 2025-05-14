@@ -85,6 +85,9 @@ authRouter.post('v1/logout', async (req: Request, res: Response): Promise<void> 
             .json({ message: 'Invalid session or already logged out' })
          return
       }
+      else {
+         return
+      }
 
       if (session.expiredAt < new Date()) {
          await prisma.session.delete({ where: { id: session.id } })
