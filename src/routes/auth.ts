@@ -9,7 +9,7 @@ import crypto from 'crypto'
 const authRouter = express.Router()
 const prisma = new PrismaClient()
 
-authRouter.post('/login', async (req: Request, res: Response): Promise<void> => {
+authRouter.post('v1/login', async (req: Request, res: Response): Promise<void> => {
    try {
       const { email, login, password } = req.body
 
@@ -62,7 +62,7 @@ authRouter.post('/login', async (req: Request, res: Response): Promise<void> => 
    }
 })
 
-authRouter.post('/logout', async (req: Request, res: Response): Promise<void> => {
+authRouter.post('v1/logout', async (req: Request, res: Response): Promise<void> => {
    try {
       if (!req.cookies) {
          res.status(401).json({ message: 'Unauthorized' })
@@ -99,7 +99,7 @@ authRouter.post('/logout', async (req: Request, res: Response): Promise<void> =>
    }
 })
 
-authRouter.post('/register', async (req: Request, res: Response): Promise<void> => {
+authRouter.post('v1/register', async (req: Request, res: Response): Promise<void> => {
    try {
       const { first_name, last_name, email, login, password, phone_number, birth_date } = req.body
       // adress
