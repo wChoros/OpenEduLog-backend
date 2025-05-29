@@ -4,8 +4,8 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "__tests__/**/*", "**/*.test.ts"],
   "exclude": ["node_modules", "dist"]
 }

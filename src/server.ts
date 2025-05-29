@@ -8,6 +8,8 @@ import { sessionVerify } from './middleware/session_verify'
 import gradesRouter from './routes/grades'
 import groupsRouter from './routes/groups'
 import subjectsRouter from './routes/subjects'
+import timetablesRouter from './routes/timetables'
+import messagesRouter from './routes/messages'
 
 dotenv.config()
 
@@ -33,6 +35,8 @@ app.use('/auth', authRouter)
 app.use('/grades', sessionVerify, gradesRouter)
 app.use('/groups', sessionVerify, groupsRouter)
 app.use('/subjects', sessionVerify, subjectsRouter)
+app.use('/timetables', sessionVerify, timetablesRouter)
+app.use('/messages', sessionVerify, messagesRouter)
 
 app.listen(PORT, () => {
    console.log(`Server is running on http://localhost:${PORT}`)
