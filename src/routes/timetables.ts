@@ -147,17 +147,20 @@ timetableRouter.post('/', authorize('create', 'Timetable'), async (req, res) => 
 
       const existingLesson = await prisma.timetable.findFirst({
          where: {
-         groupId,
-         date: {
-            gte: startOfDay,
-            lte: endOfDay,
-         },
-         lessonNumber,
+            groupId,
+            date: {
+               gte: startOfDay,
+               lte: endOfDay,
+            },
+            lessonNumber,
          },
       })
 
       if (existingLesson) {
-         res.status(400).json({ message: 'A lesson already exists for this group on the specified date and lesson number' })
+         res.status(400).json({
+            message:
+               'A lesson already exists for this group on the specified date and lesson number',
+         })
          return
       }
 

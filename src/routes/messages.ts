@@ -1,8 +1,8 @@
 /**
  * Router for handling message-related operations.
- * 
+ *
  * Endpoints:
- * 
+ *
  * - `GET /headers/received/:userId`
  *   Retrieves a list of received message headers for a specific user.
  *   - Path Parameters:
@@ -12,7 +12,7 @@
  *   - Response:
  *     - `200 OK`: An array of message headers with metadata.
  *     - `403 Forbidden`: If the user tries to access messages of another user.
- * 
+ *
  * - `GET /headers/sent/:userId/:offset?`
  *   Retrieves a list of sent message headers for a specific user with optional pagination. The max amount of returned messages is 25
  *   - Path Parameters:
@@ -24,7 +24,7 @@
  *     - `200 OK`: An array of sent message headers with metadata.
  *     - `400 Bad Request`: If the offset is invalid.
  *     - `403 Forbidden`: If the user tries to access messages of another user.
- * 
+ *
  * - `GET /content/received/:messageId`
  *   Retrieves the content of a received message for the authenticated user.
  *   - Path Parameters:
@@ -34,7 +34,7 @@
  *   - Response:
  *     - `200 OK`: The full content of the message.
  *     - `403 Forbidden`: If the user is not a receiver of the message.
- * 
+ *
  * - `GET /content/sent/:messageId`
  *   Retrieves the content of a sent message for the authenticated user.
  *   - Path Parameters:
@@ -45,7 +45,7 @@
  *     - `200 OK`: The full content of the message with receiver details.
  *     - `403 Forbidden`: If the user is not the author of the message.
  *     - `404 Not Found`: If the message does not exist.
- * 
+ *
  * - `POST /`
  *   Creates a new message and sends it to specified receivers.
  *   - Request Body:
@@ -56,7 +56,7 @@
  *   - Response:
  *     - `201 Created`: The created message object.
  *     - `404 Not Found`: If any of the specified receivers do not exist.
- * 
+ *
  * - `DELETE /:messageId`
  *   Deletes a message authored by the authenticated user.
  *   - Path Parameters:
@@ -69,7 +69,6 @@
  *     - `404 Not Found`: If the message does not exist.
  */
 
-
 import express, { Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
 
@@ -80,7 +79,6 @@ messagesRouter.get('/headers/received/:userId/:offset?', async (req: Request, re
    const { userId, offset } = req.params
    const user = req.body.user
 
-   
    let offsetValue: number
    let take = 20
    if (offset === null) {
@@ -93,8 +91,8 @@ messagesRouter.get('/headers/received/:userId/:offset?', async (req: Request, re
       }
    }
 
-   if(offsetValue<0) {
-      take = take - offsetValue >= 0 ? take - offsetValue : 0 
+   if (offsetValue < 0) {
+      take = take - offsetValue >= 0 ? take - offsetValue : 0
       offsetValue = 0
    }
 
@@ -134,10 +132,10 @@ messagesRouter.get('/headers/received/:userId/:offset?', async (req: Request, re
          },
       },
       orderBy: {
-         updatedAt: 'desc'
+         updatedAt: 'desc',
       },
       skip: offsetValue,
-      take: take
+      take: take,
    })
 
    // Transform the result to match the requested format
@@ -154,7 +152,6 @@ messagesRouter.get('/headers/received/:userId/:offset?', async (req: Request, re
    res.json(result)
    return
 })
-
 
 messagesRouter.get('/headers/sent/:userId/:offset?', async (req: Request, res: Response) => {
    const { userId, offset_str } = req.params
@@ -177,8 +174,8 @@ messagesRouter.get('/headers/sent/:userId/:offset?', async (req: Request, res: R
       return
    }
 
-   if(offset<0) {
-      take = take - offset >= 0 ? take - offset : 0 
+   if (offset < 0) {
+      take = take - offset >= 0 ? take - offset : 0
       offset = 0
    }
 
@@ -203,7 +200,7 @@ messagesRouter.get('/headers/sent/:userId/:offset?', async (req: Request, res: R
          },
       },
       skip: offset,
-      take: take
+      take: take,
    })
 
    // Transform the result to match the requested format
@@ -221,7 +218,6 @@ messagesRouter.get('/headers/sent/:userId/:offset?', async (req: Request, res: R
    res.json(result)
    return
 })
-
 
 messagesRouter.get('/content/received/:messageId/', async (req: Request, res: Response) => {
    const { messageId } = req.params
@@ -257,16 +253,13 @@ messagesRouter.get('/content/received/:messageId/', async (req: Request, res: Re
                      id: true,
                      firstName: true,
                      lastName: true,
-                  }
-               }
+                  },
+               },
             },
          },
       },
    })
 
-   
-
-   
    if (!message) {
       res.status(403).json({ message: 'Forbidden' })
       return
@@ -292,7 +285,7 @@ messagesRouter.get('/content/received/:messageId/', async (req: Request, res: Re
          },
       },
    })
-   
+
    const response = {
       id: message.id,
       title: message.title,
@@ -306,10 +299,9 @@ messagesRouter.get('/content/received/:messageId/', async (req: Request, res: Re
          isRead: receiver.isRead,
       })),
    }
-   
+
    res.status(200).json(response)
 })
-
 
 messagesRouter.get('/content/sent/:messageId', async (req: Request, res: Response) => {
    const user = req.body.user
