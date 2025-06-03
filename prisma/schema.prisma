@@ -13,6 +13,16 @@ enum Roles {
   STUDENT
 }
 
+enum WeekDays {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
 model User {
   id               Int      @id @default(autoincrement())
   firstName        String
@@ -35,11 +45,17 @@ model User {
 
   SubjectsOnTeachers SubjectsOnTeachers[]
 
-  GroupsOnTeachersOnSubjects GroupsOnSubjectsOnTeachers[]
-
   Grade Grade[]
 
-  Adress Address @relation(fields: [addressId], references: [id])
+  Address Address @relation(fields: [addressId], references: [id])
+
+  Timetable Timetable[]
+
+  Announcement Announcement[]
+
+  UsersOnMessages UsersOnMessages[]
+
+  Message Message[]
 }
 
 model Address {
@@ -75,8 +91,6 @@ model Subject {
   updatedAt DateTime @updatedAt
 
   SubjectsOnTeachers SubjectsOnTeachers[]
-
-  GroupsOnTeachersOnSubjects GroupsOnSubjectsOnTeachers[]
 }
 
 model Group {
@@ -88,12 +102,15 @@ model Group {
 
   StudentsOnGroups StudentsOnGroups[]
 
-  GroupsOnTeachersOnSubjects GroupsOnSubjectsOnTeachers[]
+  GroupsOnSubjectsOnTeachers GroupsOnSubjectsOnTeachers[]
+  Timetable                  Timetable[]
 }
 
 model Grade {
-  id                 Int   @id @default(autoincrement())
+  id                 Int     @id @default(autoincrement())
   value              Float
+  description        String?
+  weight             Int     @default(1)
   studentId          Int
   subjectOnTeacherId Int
 
@@ -102,6 +119,63 @@ model Grade {
 
   student          User               @relation(fields: [studentId], references: [id])
   subjectOnTeacher SubjectsOnTeachers @relation(fields: [subjectOnTeacherId], references: [id])
+}
+
+model Timetable {
+  id                    Int      @id @default(autoincrement())
+  date                  DateTime
+  lessonNumber          Int
+  subjectOnTeacherId    Int
+  groupId               Int
+  substitutionTeacherId Int?
+  isCanceled            Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subjectOnTeacher    SubjectsOnTeachers @relation(fields: [subjectOnTeacherId], references: [id])
+  group               Group              @relation(fields: [groupId], references: [id])
+  substitutionTeacher User?              @relation(fields: [substitutionTeacherId], references: [id])
+}
+
+model Announcement {
+  id       Int    @id @default(autoincrement())
+  authorId Int
+  title    String
+  content  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [authorId], references: [id])
+}
+
+model Message {
+  id        Int               @id @default(autoincrement())
+  authorId  Int
+  title     String
+  content   String
+  receivers UsersOnMessages[]
+
+  // Add this relation field
+  author User @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UsersOnMessages {
+  userId    Int
+  messageId Int
+  isRead    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id])
+  message Message @relation(fields: [messageId], references: [id])
+
+  @@id([userId, messageId])
 }
 
 model SubjectsOnTeachers {
@@ -116,6 +190,10 @@ model SubjectsOnTeachers {
   teacher User    @relation(fields: [teacherId], references: [id])
 
   Grade Grade[]
+
+  Timetable Timetable[]
+
+  GroupsOnSubjectsOnTeachers GroupsOnSubjectsOnTeachers[]
 }
 
 model StudentsOnGroups {
@@ -132,16 +210,14 @@ model StudentsOnGroups {
 }
 
 model GroupsOnSubjectsOnTeachers {
-  groupId   Int
-  teacherId Int
-  subjectId Int
+  groupId            Int
+  subjectOnTeacherId Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  group   Group   @relation(fields: [groupId], references: [id])
-  teacher User    @relation(fields: [teacherId], references: [id])
-  subject Subject @relation(fields: [subjectId], references: [id])
+  group            Group              @relation(fields: [groupId], references: [id])
+  subjectOnTeacher SubjectsOnTeachers @relation(fields: [subjectOnTeacherId], references: [id])
 
-  @@id([groupId, teacherId, subjectId])
+  @@id([groupId, subjectOnTeacherId])
 }

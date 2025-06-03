@@ -12,20 +12,18 @@
     "prettier:check": "prettier --check 'src/**/*.{js,ts,json}'",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "seed": "ts-node prisma/faker.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^6.2.1",
-
     "@casl/ability": "^6.7.3",
     "@faker-js/faker": "^9.4.0",
     "@prisma/client": "^6.3.0",
-
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -35,8 +33,7 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
-    "password-validator": "^5.3.0",
-    "prisma": "^6.2.1"
+    "password-validator": "^5.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
@@ -46,7 +43,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^22.10.7",
+    "@types/node": "^22.15.24",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
@@ -58,6 +55,7 @@
     "globals": "^15.14.0",
     "jest": "^29.7.0",
     "prettier": "^3.4.2",
+    "prisma": "^6.3.0",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
