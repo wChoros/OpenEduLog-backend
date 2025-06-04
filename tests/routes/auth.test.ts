@@ -80,7 +80,6 @@ const EmailValidatorMock = require('email-validator') as jest.Mocked<
 describe('Auth Router - src/routes/auth.ts', () => {
    beforeEach(() => {
       jest.clearAllMocks()
-
       ;(prismaMock.user.findFirst as jest.Mock).mockResolvedValue(null)
       ;(prismaMock.user.create as jest.Mock).mockResolvedValue({ id: 1, role: 'STUDENT' })
       ;(prismaMock.address.create as jest.Mock).mockResolvedValue({ id: 1 })
@@ -90,13 +89,11 @@ describe('Auth Router - src/routes/auth.ts', () => {
       })
       ;(prismaMock.session.findFirst as jest.Mock).mockResolvedValue(null)
       ;(prismaMock.session.delete as jest.Mock).mockResolvedValue({})
-
       ;(bcryptMock.compare as jest.Mock).mockResolvedValue(true)
       ;(bcryptMock.hash as jest.Mock).mockResolvedValue('mockHashedPassword')
 
       // cryptoMock.randomBytes is now a Jest mock function
       cryptoMock.randomBytes.mockReturnValue({ toString: () => 'mockGeneratedSessionToken' } as any) // Cast to any if Buffer type causes issues with simple toString mock
-
       ;(EmailValidatorMock.validate as jest.Mock).mockReturnValue(true)
       mockPasswordValidatorValidate = jest.fn().mockReturnValue(true)
    })
@@ -131,7 +128,9 @@ describe('Auth Router - src/routes/auth.ts', () => {
             mockUser.password
          )
          expect(prismaMock.session.create).toHaveBeenCalledWith(
-            expect.objectContaining({data:{ token: 'emailLoginToken', expiredAt: expect.any(Date), userId: mockUser.id }})
+            expect.objectContaining({
+               data: { token: 'emailLoginToken', expiredAt: expect.any(Date), userId: mockUser.id },
+            })
          )
          expect(res.headers['set-cookie']).toEqual(
             expect.arrayContaining([
@@ -345,20 +344,20 @@ describe('Auth Router - src/routes/auth.ts', () => {
             },
          })
          expect(prismaMock.user.create).toHaveBeenCalledWith(
-          expect.objectContaining({
-             data: {
-              firstName: validUserData.first_name,
-              lastName: validUserData.last_name,
-              email: validUserData.email,
-              login: validUserData.login,
-              password: 'mockHashedPassword',
-              phoneNumber: validUserData.phone_number,
-              isEmailConfirmed: false,
-              birthDate: new Date(validUserData.birth_date),
-              role: 'STUDENT',
-              addressId: 10,
-             },
-          })
+            expect.objectContaining({
+               data: {
+                  firstName: validUserData.first_name,
+                  lastName: validUserData.last_name,
+                  email: validUserData.email,
+                  login: validUserData.login,
+                  password: 'mockHashedPassword',
+                  phoneNumber: validUserData.phone_number,
+                  isEmailConfirmed: false,
+                  birthDate: new Date(validUserData.birth_date),
+                  role: 'STUDENT',
+                  addressId: 10,
+               },
+            })
          )
       })
 
