@@ -1,7 +1,12 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} **/
+// jest.config.js
 module.exports = {
-  testEnvironment: "node",
-  transform: {
-    "^.+.tsx?$": ["ts-jest",{}],
-  },
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  clearMocks: true,
+  coverageDirectory: "coverage",
+  moduleDirectories: ["node_modules", "src"],
+  testMatch: [
+    "**/tests/**/*.test.ts",
+    "**/__tests__/**/*.test.ts"
+  ],
 };
